@@ -1,0 +1,20 @@
+# mvn
+target
+
+# idea
+*.iml
+.idea
+dependency-reduced-pom.xml
+
+# mac
+.DS_Store
+
+# ignore
+out
+logs
+
+# version plugin
+pom.xml-backup
+
+# python
+venv
