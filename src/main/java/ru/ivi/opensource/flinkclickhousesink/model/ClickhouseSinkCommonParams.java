@@ -32,7 +32,6 @@ public class ClickhouseSinkCommonParams {
         Preconditions.checkArgument(maxRetries > 0);
     }
 
-
     public int getNumWriters() {
         return numWriters;
     }

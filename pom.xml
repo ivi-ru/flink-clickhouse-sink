@@ -6,7 +6,7 @@
 
     <groupId>ru.ivi.opensource</groupId>
     <artifactId>flink-clickhouse-sink</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
 
     <properties>
         <!-- Primary components -->
@@ -16,7 +16,6 @@
 
         <!-- Secondary components -->
         <async.client.version>2.0.39</async.client.version>
-        <jackson.version>2.9.6</jackson.version>
         <logback.version>1.2.3</logback.version>
         <guava.version>23.0</guava.version>
         <typesafe.config.version>1.3.3</typesafe.config.version>
@@ -62,7 +61,6 @@
             <version>${async.client.version}</version>
         </dependency>
 
-        <!-- Sink Function -->
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-streaming-java_${scala.version}</artifactId>

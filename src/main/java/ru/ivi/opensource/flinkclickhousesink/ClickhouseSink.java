@@ -45,9 +45,9 @@ public class ClickhouseSink extends RichSinkFunction<String> {
     }
 
     /**
-     * Добавляет строку в буфер
+     * Add csv to buffer
      *
-     * @param recordAsCSV строка для добавления
+     * @param recordAsCSV csv-event
      */
     @Override
     public void invoke(String recordAsCSV) {

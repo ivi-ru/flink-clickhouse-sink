@@ -25,6 +25,7 @@ public class ClickhouseWriter implements AutoCloseable {
     private ExecutorService callbackService;
     private List<WriterTask> tasks;
     private BlockingQueue<ClickhouseRequestBlank> commonQueue;
+    private AsyncHttpClient asyncHttpClient;
 
     private ClickhouseSinkCommonParams sinkParams;
 
@@ -59,9 +60,10 @@ public class ClickhouseWriter implements AutoCloseable {
         ThreadFactory callbackServiceFactory = ThreadUtil.threadFactory("clickhouse-writer-callback-executor");
         callbackService = Executors.newCachedThreadPool(callbackServiceFactory);
 
+        asyncHttpClient = Dsl.asyncHttpClient();
         tasks = Lists.newArrayList();
         for (int i = 0; i < numWriters; i++) {
-            WriterTask task = new WriterTask(i, commonQueue, sinkParams, callbackService);
+            WriterTask task = new WriterTask(i, asyncHttpClient, commonQueue, sinkParams, callbackService);
             tasks.add(task);
             service.submit(task);
         }
@@ -88,6 +90,7 @@ public class ClickhouseWriter implements AutoCloseable {
         stopWriters();
         ThreadUtil.shutdownExecutorService(service);
         ThreadUtil.shutdownExecutorService(callbackService);
+        asyncHttpClient.close();
         logger.info("{} is closed", ClickhouseWriter.class.getSimpleName());
     }
 
@@ -106,6 +109,7 @@ public class ClickhouseWriter implements AutoCloseable {
         private volatile boolean isWorking;
 
         WriterTask(int id,
+                   AsyncHttpClient asyncHttpClient,
                    BlockingQueue<ClickhouseRequestBlank> queue,
                    ClickhouseSinkCommonParams settings,
                    ExecutorService callbackService
@@ -114,8 +118,7 @@ public class ClickhouseWriter implements AutoCloseable {
             this.sinkSettings = settings;
             this.queue = queue;
             this.callbackService = callbackService;
-
-            this.asyncHttpClient = Dsl.asyncHttpClient();
+            this.asyncHttpClient = asyncHttpClient;
         }
 
         @Override
