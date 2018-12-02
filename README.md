@@ -124,3 +124,8 @@ dataStream.map(YourEventConverter::toClickHouseInsertFormat)
           .addSink(new ClickhouseSink(props))
           .name("your_table clickhouse sink);
 ```
+
+### Roadmap
+* travis,
+* maven,
+* reading files with failed records.
