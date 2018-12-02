@@ -1,5 +1,5 @@
 
-#Flink-Clickhouse-Sink
+# Flink-Clickhouse-Sink
 
 ### Description
 
@@ -25,7 +25,7 @@ TODO
 The flink-clickhouse-sink uses two parts of configuration properties: 
 common and for each sink in you operators chain.
 
-The common part (use like global):
+**The common part** (use like global):
 
  `clickhouse.sink.num-writers` - number of writers, which build and  send requests, 
  
@@ -37,7 +37,8 @@ The common part (use like global):
  
  `clickhouse.sink.failed-records-path`- path for failed records.
 
-The sink part (use in chain):
+**The sink part** (use in chain):
+
  `clickhouse.sink.target-table` - target table in Clickhouse,
  
  `clickhouse.sink.max-buffer-size`- buffer size.
