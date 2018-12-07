@@ -185,7 +185,7 @@ public class ClickhouseWriter implements AutoCloseable {
                         logger.info("Successful send data to Clickhouse, batch size = {}, target table = {}, current attempt = {}",
                                 requestBlank.getValues().size(),
                                 requestBlank.getTargetTable(),
-                                requestBlank.getAttemptCounter().get());
+                                requestBlank.getAttemptCounter());
                     }
                 } catch (Exception e) {
                     logger.error("Error while executing callback, params = {}", sinkSettings, e);
@@ -199,16 +199,16 @@ public class ClickhouseWriter implements AutoCloseable {
         }
 
         private void handleUnsuccessfulResponse(Response response, ClickhouseRequestBlank requestBlank) throws Exception {
-            int currentCounter = requestBlank.getAttemptCounter().get();
+            int currentCounter = requestBlank.getAttemptCounter();
             if (currentCounter > sinkSettings.getMaxRetries()) {
                 logger.warn("Failed to send data to Clickhouse, cause: limit of attempts is exceeded. Clickhouse response = {}. Ready to flush data on disk", response);
                 logFailedRecords(requestBlank);
             } else {
-                requestBlank.getAttemptCounter().incrementAndGet();
+                requestBlank.incrementCounter();
                 logger.warn("Next attempt to send data to Clickhouse, table = {}, buffer size = {}, current attempt num = {}, max attempt num = {}, response = {}",
                         requestBlank.getTargetTable(),
                         requestBlank.getValues().size(),
-                        requestBlank.getAttemptCounter().get(),
+                        requestBlank.getAttemptCounter(),
                         sinkSettings.getMaxRetries(),
                         response);
                 queue.put(requestBlank);

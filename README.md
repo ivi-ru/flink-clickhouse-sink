@@ -1,6 +1,8 @@
 
 # Flink-Clickhouse-Sink
 
+[![Build Status](https://travis-ci.com/ivi-ru/flink-clickhouse-sink.svg?branch=master)](https://travis-ci.com/ivi-ru/flink-clickhouse-sink)
+
 ### Description
 
 [Flink](https://github.com/apache/flink) sink for [Clickhouse](https://github.com/yandex/ClickHouse) database. 
@@ -127,6 +129,5 @@ dataStream.map(YourEventConverter::toClickHouseInsertFormat)
 ```
 
 ### Roadmap
-* travis,
 * maven,
-* reading files with failed records.
+* reading files from "failed-records-path".

@@ -1,25 +1,27 @@
 package ru.ivi.opensource.flinkclickhousesink.model;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class ClickhouseRequestBlank {
     private final List<String> values;
     private final String targetTable;
-    //TODO think about it: change to int
-    private final AtomicInteger attemptCounter;
+    private int attemptCounter;
 
     public ClickhouseRequestBlank(List<String> values, String targetTable) {
         this.values = values;
         this.targetTable = targetTable;
-        this.attemptCounter = new AtomicInteger(0);
+        this.attemptCounter = 0;
     }
 
     public List<String> getValues() {
         return values;
     }
 
-    public AtomicInteger getAttemptCounter() {
+    public void incrementCounter() {
+        this.attemptCounter++;
+    }
+
+    public int getAttemptCounter() {
         return attemptCounter;
     }
 
