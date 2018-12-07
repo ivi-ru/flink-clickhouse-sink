@@ -3,7 +3,7 @@
 
 [![Build Status](https://travis-ci.com/ivi-ru/flink-clickhouse-sink.svg?branch=master)](https://travis-ci.com/ivi-ru/flink-clickhouse-sink)
 
-### Description
+## Description
 
 [Flink](https://github.com/apache/flink) sink for [Clickhouse](https://github.com/yandex/ClickHouse) database. 
 Powered by [Async Http Client](https://github.com/AsyncHttpClient/async-http-client).
@@ -22,8 +22,8 @@ _by timeout_ and _by buffer size_.
 ### Install
 TODO
 
-### Usage
-##### Properties
+## Usage
+### Properties
 The flink-clickhouse-sink uses two parts of configuration properties: 
 common and for each sink in you operators chain.
 
@@ -35,7 +35,7 @@ common and for each sink in you operators chain.
  
  `clickhouse.sink.timeout-sec` - timeout for loading data,
  
- `clickhouse.sink.retries` - max number of reties,
+ `clickhouse.sink.retries` - max number of retries,
  
  `clickhouse.sink.failed-records-path`- path for failed records.
 
@@ -45,7 +45,7 @@ common and for each sink in you operators chain.
  
  `clickhouse.sink.max-buffer-size`- buffer size.
 
-##### In code
+### In code
 The main thing: the clickhouse-sink works with events in string 
 (Clickhouse insert format, like CSV) format.
 You have to convert your event to csv format (like usual insert in database).
@@ -128,6 +128,6 @@ dataStream.map(YourEventConverter::toClickHouseInsertFormat)
           .name("your_table clickhouse sink);
 ```
 
-### Roadmap
+## Roadmap
 * maven,
 * reading files from "failed-records-path".

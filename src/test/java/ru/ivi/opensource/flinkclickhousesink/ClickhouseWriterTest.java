@@ -41,9 +41,6 @@ public class ClickhouseWriterTest {
 
     private static final int MAX_ATTEMPT = 2;
     private static final String JDBC_DRIVER = "ru.yandex.clickhouse.ClickHouseDriver";
-    private static final String DB_URL = "http://hadoop-spark-linx-1.vcp.digitalaccess.ru:8123";
-    private static final String PASS = "LrRNalY82qjLecn2";
-    private static final String USER = "flink";
     private static final int HTTP_CLICKHOUSE_PORT = 8123;
 
     private AsyncHttpClient asyncHttpClient;
