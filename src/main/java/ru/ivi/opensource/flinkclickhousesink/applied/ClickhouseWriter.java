@@ -37,7 +37,7 @@ public class ClickhouseWriter implements AutoCloseable {
     private void initDirAndExecutors() {
         try {
             initDir(sinkParams.getFailedRecordsPath());
-            buildAndRunExecs();
+            buildComponents();
         } catch (Exception e) {
             logger.error("Error during start CH writers", e);
             throw new RuntimeException(e);
@@ -49,7 +49,7 @@ public class ClickhouseWriter implements AutoCloseable {
         Files.createDirectories(path);
     }
 
-    private void buildAndRunExecs() {
+    private void buildComponents() {
         int numWriters = sinkParams.getNumWriters();
 
         commonQueue = new LinkedBlockingQueue<>(sinkParams.getQueueMaxCapacity());
@@ -58,7 +58,13 @@ public class ClickhouseWriter implements AutoCloseable {
         service = Executors.newFixedThreadPool(sinkParams.getNumWriters(), threadFactory);
 
         ThreadFactory callbackServiceFactory = ThreadUtil.threadFactory("clickhouse-writer-callback-executor");
-        callbackService = Executors.newCachedThreadPool(callbackServiceFactory);
+        callbackService = new ThreadPoolExecutor(
+                2,
+                Integer.MAX_VALUE,
+                60L,
+                TimeUnit.SECONDS,
+                new LinkedBlockingQueue<>(),
+                callbackServiceFactory);
 
         asyncHttpClient = Dsl.asyncHttpClient();
         tasks = Lists.newArrayList();
@@ -169,8 +175,9 @@ public class ClickhouseWriter implements AutoCloseable {
 
         private Runnable callbackLambda(ListenableFuture<Response> whenResponse, ClickhouseRequestBlank requestBlank) {
             return () -> {
+                Response response = null;
                 try {
-                    Response response = whenResponse.get();
+                    response = whenResponse.get();
 
                     if (response.getStatusCode() != HTTP_OK) {
                         handleUnsuccessfulResponse(response, requestBlank);
@@ -183,9 +190,9 @@ public class ClickhouseWriter implements AutoCloseable {
                 } catch (Exception e) {
                     logger.error("Error while executing callback, params = {}", sinkSettings, e);
                     try {
-                        logFailedRecords(requestBlank);
+                        handleUnsuccessfulResponse(response, requestBlank);
                     } catch (Exception error) {
-                        logger.error("Error while sending data on disk", error);
+                        logger.error("Error while handle unsuccessful response", error);
                     }
                 }
             };
