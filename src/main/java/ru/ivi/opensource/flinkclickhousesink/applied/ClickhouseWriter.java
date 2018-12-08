@@ -39,7 +39,7 @@ public class ClickhouseWriter implements AutoCloseable {
             initDir(sinkParams.getFailedRecordsPath());
             buildComponents();
         } catch (Exception e) {
-            logger.error("Error during start CH writers", e);
+            logger.error("Error while starting CH writer", e);
             throw new RuntimeException(e);
         }
     }
@@ -50,23 +50,26 @@ public class ClickhouseWriter implements AutoCloseable {
     }
 
     private void buildComponents() {
-        int numWriters = sinkParams.getNumWriters();
+        asyncHttpClient = Dsl.asyncHttpClient();
 
+        int numWriters = sinkParams.getNumWriters();
         commonQueue = new LinkedBlockingQueue<>(sinkParams.getQueueMaxCapacity());
 
         ThreadFactory threadFactory = ThreadUtil.threadFactory("clickhouse-writer");
         service = Executors.newFixedThreadPool(sinkParams.getNumWriters(), threadFactory);
 
         ThreadFactory callbackServiceFactory = ThreadUtil.threadFactory("clickhouse-writer-callback-executor");
+
+        int cores = Runtime.getRuntime().availableProcessors();
+        int coreThreadsNum = Math.max(cores / 4, 2);
         callbackService = new ThreadPoolExecutor(
-                2,
+                coreThreadsNum,
                 Integer.MAX_VALUE,
                 60L,
                 TimeUnit.SECONDS,
                 new LinkedBlockingQueue<>(),
                 callbackServiceFactory);
 
-        asyncHttpClient = Dsl.asyncHttpClient();
         tasks = Lists.newArrayList();
         for (int i = 0; i < numWriters; i++) {
             WriterTask task = new WriterTask(i, asyncHttpClient, commonQueue, sinkParams, callbackService);
@@ -153,7 +156,7 @@ public class ClickhouseWriter implements AutoCloseable {
             logger.debug("Ready to load data to {}, size = {}", requestBlank.getTargetTable(), requestBlank.getValues().size());
             ListenableFuture<Response> whenResponse = asyncHttpClient.executeRequest(request);
 
-            Runnable callback = callbackLambda(whenResponse, requestBlank);
+            Runnable callback = responseCallback(whenResponse, requestBlank);
             whenResponse.addListener(callback, callbackService);
         }
 
@@ -173,7 +176,7 @@ public class ClickhouseWriter implements AutoCloseable {
             return builder.build();
         }
 
-        private Runnable callbackLambda(ListenableFuture<Response> whenResponse, ClickhouseRequestBlank requestBlank) {
+        private Runnable responseCallback(ListenableFuture<Response> whenResponse, ClickhouseRequestBlank requestBlank) {
             return () -> {
                 Response response = null;
                 try {
@@ -222,7 +225,8 @@ public class ClickhouseWriter implements AutoCloseable {
                     System.currentTimeMillis());
 
             try (PrintWriter writer = new PrintWriter(filePath)) {
-                writer.println(requestBlank.getValues());
+                List<String> records = requestBlank.getValues();
+                records.forEach(writer::println);
                 writer.flush();
             }
             logger.info("Successful send data on disk, path = {}, size = {} ", filePath, requestBlank.getValues().size());
