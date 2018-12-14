@@ -167,6 +167,7 @@ public class ClickhouseWriter implements AutoCloseable {
 
             BoundRequestBuilder builder = asyncHttpClient
                     .preparePost(host)
+                    .setHeader(HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=utf-8")
                     .setBody(query);
 
             if (sinkSettings.getClickhouseClusterSettings().isAuthorizationRequired()) {

@@ -31,7 +31,7 @@ common and for each sink in you operators chain.
 
  `clickhouse.sink.num-writers` - number of writers, which build and  send requests, 
  
- `clickhouse.sink.queue-max-capacity` - max capacity of blank's queue,
+ `clickhouse.sink.queue-max-capacity` - max capacity (batches) of blank's queue,
  
  `clickhouse.sink.timeout-sec` - timeout for loading data,
  
