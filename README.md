@@ -2,6 +2,7 @@
 # Flink-Clickhouse-Sink
 
 [![Build Status](https://travis-ci.com/ivi-ru/flink-clickhouse-sink.svg?branch=master)](https://travis-ci.com/ivi-ru/flink-clickhouse-sink)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/ru.ivi.opensource/flink-clickhouse-sink/badge.svg)](https://maven-badges.herokuapp.com/maven-central/ru.ivi.opensource/flink-clickhouse-sink/)
 
 ## Description
 
@@ -16,11 +17,20 @@ _by timeout_ and _by buffer size_.
 ##### Version map
 |flink    |flink-clickhouse-sink | 
 |:-------:|:--------------------:| 
-|1.3.2    |1.0.0                 |
+|1.3.*    |1.0.0                 |
 
 
 ### Install
-TODO
+
+##### Maven Central
+
+```
+<dependency>
+  <groupId>ru.ivi.opensource</groupId>
+  <artifactId>flink-clickhouse-sink</artifactId>
+  <version>1.0.0</version>
+</dependency>
+```
 
 ## Usage
 ### Properties
