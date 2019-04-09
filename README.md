@@ -24,7 +24,7 @@ _by timeout_ and _by buffer size_.
 
 ##### Maven Central
 
-```
+```xml
 <dependency>
   <groupId>ru.ivi.opensource</groupId>
   <artifactId>flink-clickhouse-sink</artifactId>
@@ -67,7 +67,7 @@ class A {
     public final int integer;
     
     public A(String str, int i){
-        thit.fieldString = str;
+        this.str = str;
         this.integer = i;
     }
 }
@@ -139,5 +139,6 @@ dataStream.map(YourEventConverter::toClickHouseInsertFormat)
 ```
 
 ## Roadmap
-* maven,
-* reading files from "failed-records-path".
+- [x] maven
+- [ ] reading files from "failed-records-path"
+- [ ] Flink 1.7+
