@@ -29,7 +29,7 @@ public final class ThreadUtil {
     public static void shutdownExecutorService(ExecutorService executorService, int timeoutS) throws InterruptedException {
         if (executorService != null && !executorService.isShutdown()) {
             executorService.shutdown();
-            if (executorService.awaitTermination(timeoutS, TimeUnit.SECONDS)) {
+            if (!executorService.awaitTermination(timeoutS, TimeUnit.SECONDS)) {
                 executorService.shutdownNow();
                 executorService.awaitTermination(timeoutS, TimeUnit.SECONDS);
             }

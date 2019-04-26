@@ -45,7 +45,6 @@ public class ClickhouseWriterTest {
 
     private AsyncHttpClient asyncHttpClient;
     private HikariDataSource hikariDataSource;
-    private Map<String, String> params;
 
     @Rule
     public ClickHouseContainer clickhouse = new ClickHouseContainer();
@@ -54,13 +53,14 @@ public class ClickhouseWriterTest {
     @Before
     public void setUp() throws Exception {
         Config config = ConfigFactory.load();
-        params = ConfigUtil.toMap(config);
+        Map<String, String> params = ConfigUtil.toMap(config);
 
         params.put(ClickhouseClusterSettings.CLICKHOUSE_USER, "");
         params.put(ClickhouseClusterSettings.CLICKHOUSE_PASSWORD, "");
         int dockerActualPort = clickhouse.getMappedPort(HTTP_CLICKHOUSE_PORT);
-        // для каждого теста поднимается новый контейнер с новым портом, поэтому его нужно каждый раз заново пробрасывать
-        params.put(ClickhouseClusterSettings.CLICKHOUSE_HOSTS, "http://localhost:" + String.valueOf(dockerActualPort));
+
+        // container with CH is raised for every test -> we should config host and port every time
+        params.put(ClickhouseClusterSettings.CLICKHOUSE_HOSTS, "http://localhost:" + dockerActualPort);
 
         asyncHttpClient = asyncHttpClient();
 
@@ -101,7 +101,7 @@ public class ClickhouseWriterTest {
     }
 
     @After
-    public void down() throws Exception{
+    public void down() throws Exception {
         sinkManager.close();
     }
 
@@ -156,7 +156,7 @@ public class ClickhouseWriterTest {
         List<ClickhouseSinkBuffer> buffers = new ArrayList<>();
         ThreadLocalRandom random = ThreadLocalRandom.current();
         for (int i = 0; i < 4; i++) {
-            String targetTable = null;
+            String targetTable;
             if (i % 2 != 0) {
                 targetTable = "test.test0";
             } else targetTable = "test.test1";
@@ -175,7 +175,7 @@ public class ClickhouseWriterTest {
             lock.lock();
             try {
                 ClickhouseSinkBuffer sinkBuffer = buffers.get(id);
-                String csv = null;
+                String csv;
                 if (id % 2 != 0) {
                     csv = "(10, 'title', 'container', 'drm', 'quality')";
                 } else {

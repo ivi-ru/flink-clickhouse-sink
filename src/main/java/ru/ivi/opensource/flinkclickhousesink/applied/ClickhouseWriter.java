@@ -83,6 +83,7 @@ public class ClickhouseWriter implements AutoCloseable {
             commonQueue.put(params);
         } catch (InterruptedException e) {
             logger.error("Interrupted error while putting data to queue", e);
+            Thread.currentThread().interrupt();
             throw new RuntimeException(e);
         }
     }

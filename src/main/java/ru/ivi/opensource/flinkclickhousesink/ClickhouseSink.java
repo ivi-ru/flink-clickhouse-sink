@@ -61,15 +61,20 @@ public class ClickhouseSink extends RichSinkFunction<String> {
 
     @Override
     public void close() throws Exception {
-        clickhouseSinkBuffer.close();
+        if (clickhouseSinkBuffer != null) {
+            clickhouseSinkBuffer.close();
+        }
 
-        if (!sinkManager.isClosed()) {
-            synchronized (DUMMY_LOCK) {
-                if (!sinkManager.isClosed()) {
-                    sinkManager.close();
+        if (sinkManager != null) {
+            if (!sinkManager.isClosed()) {
+                synchronized (DUMMY_LOCK) {
+                    if (!sinkManager.isClosed()) {
+                        sinkManager.close();
+                    }
                 }
             }
         }
+
         super.close();
     }
 }
