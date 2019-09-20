@@ -28,7 +28,7 @@ public class ClickhouseSinkBuffer implements AutoCloseable {
             String table
     ) {
         writer = chWriter;
-        localValues = new ArrayList<>();
+        localValues = Collections.synchronizedList(new ArrayList<>());
         timeoutMillis = timeout;
         maxFlushBufferSize = maxBuffer;
         targetTable = table;
