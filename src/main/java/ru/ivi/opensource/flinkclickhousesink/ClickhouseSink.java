@@ -50,7 +50,7 @@ public class ClickhouseSink extends RichSinkFunction<String> {
      * @param recordAsCSV csv-event
      */
     @Override
-    public void invoke(String recordAsCSV) {
+    public void invoke(String recordAsCSV, Context context) {
         try {
             clickhouseSinkBuffer.put(recordAsCSV);
         } catch (Exception e) {

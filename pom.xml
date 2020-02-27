@@ -12,7 +12,7 @@
 
     <groupId>ru.ivi.opensource</groupId>
     <artifactId>flink-clickhouse-sink</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>Flink Clickhouse sink</name>
@@ -27,11 +27,11 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!-- Primary components -->
         <java.version>1.8</java.version>
-        <scala.version>2.10</scala.version>
-        <flink.version>1.3.2</flink.version>
+        <scala.version>2.11</scala.version>
+        <flink.version>1.9.0</flink.version>
 
         <!-- Secondary components -->
-        <async.client.version>2.0.39</async.client.version>
+        <async.client.version>2.10.4</async.client.version>
         <logback.version>1.2.3</logback.version>
         <guava.version>23.0</guava.version>
         <typesafe.config.version>1.3.3</typesafe.config.version>
@@ -72,7 +72,10 @@
         <developer>
             <id>mchernyakov</id>
             <name>Mikhail Chernyakov</name>
-            <email>mychernyakov@gmail.com</email>
+        </developer>
+        <developer>
+            <id>aleksanchezz</id>
+            <name>Alexander Lanko</name>
         </developer>
     </developers>
 
