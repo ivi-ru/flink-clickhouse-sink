@@ -159,7 +159,7 @@ public class ClickHouseWriterTest {
         final int numBuffers = 4;
         Striped<Lock> striped = Striped.lock(numBuffers);
 
-        List<Sink<String>> buffers = new ArrayList<>();
+        List<Sink> buffers = new ArrayList<>();
         ThreadLocalRandom random = ThreadLocalRandom.current();
         for (int i = 0; i < 4; i++) {
             String targetTable;
@@ -168,7 +168,7 @@ public class ClickHouseWriterTest {
             } else targetTable = "test.test1";
 
             int maxBuffer = random.nextInt(1_000, 100_000);
-            Sink<String> sink = sinkManager.buildSink(targetTable, maxBuffer);
+            Sink sink = sinkManager.buildSink(targetTable, maxBuffer);
             buffers.add(sink);
         }
 
@@ -180,7 +180,7 @@ public class ClickHouseWriterTest {
             Lock lock = striped.get(id);
             lock.lock();
             try {
-                Sink<String> sink = buffers.get(id);
+                Sink sink = buffers.get(id);
                 String csv;
                 if (id % 2 != 0) {
                     csv = "(10, 'title', 'container', 'drm', 'quality')";
@@ -188,9 +188,7 @@ public class ClickHouseWriterTest {
                     csv = "(11, 'title', 111)";
                 }
                 sink.put(csv);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
+            } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
             } finally {
                 lock.unlock();

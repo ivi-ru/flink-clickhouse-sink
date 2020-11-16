@@ -2,7 +2,7 @@ package ru.ivi.opensource.flinkclickhousesink.applied;
 
 import java.util.concurrent.ExecutionException;
 
-public class ExceptionsThrowableSink<T> implements Sink<T> {
+public class ExceptionsThrowableSink implements Sink {
     private final ClickHouseSinkBuffer clickHouseSinkBuffer;
 
     public ExceptionsThrowableSink(ClickHouseSinkBuffer buffer) {
@@ -10,8 +10,8 @@ public class ExceptionsThrowableSink<T> implements Sink<T> {
     }
 
     @Override
-    public void put(T message) throws ExecutionException, InterruptedException {
-        clickHouseSinkBuffer.put((String) message);
+    public void put(String message) throws ExecutionException, InterruptedException {
+        clickHouseSinkBuffer.put(message);
         clickHouseSinkBuffer.assertFuturesNotFailedYet();
     }
 

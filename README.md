@@ -50,7 +50,7 @@ common and for each sink in you operators chain.
  
  `clickhouse.sink.failed-records-path`- path for failed records,
  
- `clickhouse.sink.ignoring-clickhouse-sending-exception-enabled` - boolean parameter responsible for raising (false) or not (true) ClickHouse sending exception in main thread. 
+ `clickhouse.sink.ignoring-clickhouse-sending-exception-enabled` - required boolean parameter responsible for raising (false) or not (true) ClickHouse sending exception in main thread. 
  if `ignoring-clickhouse-sending-exception-enabled` is true, exception while clickhouse sending is ignored and failed data automatically goes to the disk.
  if `ignoring-clickhouse-sending-exception-enabled` is false, clickhouse sending exception thrown in "main" thread (thread which called ClickhHouseSink::invoke) and data also goes to the disk.
 
@@ -112,7 +112,7 @@ globalParameters.put(ClickHouseSinkConsts.FAILED_RECORDS_PATH, ...);
 globalParameters.put(ClickHouseSinkConsts.NUM_WRITERS, ...);
 globalParameters.put(ClickHouseSinkConsts.NUM_RETRIES, ...);
 globalParameters.put(ClickHouseSinkConsts.QUEUE_MAX_CAPACITY, ...);
-globalParameters.put(ClickHouseSinkConsts.IGNORING_EXCEPTION_ENABLED, ...);
+globalParameters.put(ClickHouseSinkConsts.IGNORING_CLICKHOUSE_SENDING_EXCEPTION_ENABLED, ...);
 
 // set global paramaters
 ParameterTool parameters = ParameterTool.fromMap(buildGlobalParameters(config));

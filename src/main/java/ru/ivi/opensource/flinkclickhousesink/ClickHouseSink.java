@@ -20,7 +20,7 @@ public class ClickHouseSink extends RichSinkFunction<String> {
     private final Properties localProperties;
 
     private volatile static transient ClickHouseSinkManager sinkManager;
-    private transient Sink<String> sink;
+    private transient Sink sink;
 
     public ClickHouseSink(Properties properties) {
         this.localProperties = properties;

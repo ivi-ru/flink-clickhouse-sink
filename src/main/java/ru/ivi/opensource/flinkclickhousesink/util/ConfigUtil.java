@@ -9,9 +9,10 @@ public final class ConfigUtil {
 
     public static final String HOST_DELIMITER = ", ";
 
-    private ConfigUtil(){
+    private ConfigUtil() {
 
     }
+
     public static Properties toProperties(Config config) {
         Properties properties = new Properties();
         config.entrySet().forEach(e -> properties.put(e.getKey(), unwrapped(config.getValue(e.getKey()))));

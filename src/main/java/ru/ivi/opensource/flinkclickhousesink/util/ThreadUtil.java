@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 public final class ThreadUtil {
 
     private ThreadUtil() {
+
     }
 
     public static ThreadFactory threadFactory(String threadName, boolean isDaemon) {

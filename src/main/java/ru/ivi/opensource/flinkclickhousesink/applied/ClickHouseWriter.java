@@ -100,12 +100,16 @@ public class ClickHouseWriter implements AutoCloseable {
         logger.info("Wait until all futures are done or completed exceptionally. Futures size: {}", futures.size());
         try {
             while (unprocessedRequestsCounter.get() > 0 || !futures.isEmpty()) {
-                logger.debug("Futures size: {}.", futures.size());
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Futures size: {}.", futures.size());
+                }
                 CompletableFuture<Void> future = FutureUtil.allOf(futures);
                 try {
                     future.get();
                     futures.removeIf(f -> f.isDone() && !f.isCompletedExceptionally());
-                    logger.debug("Futures size after removing: {}", futures.size());
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Futures size after removing: {}", futures.size());
+                    }
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }

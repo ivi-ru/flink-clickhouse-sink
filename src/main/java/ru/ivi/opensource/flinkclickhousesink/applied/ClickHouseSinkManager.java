@@ -27,14 +27,14 @@ public class ClickHouseSinkManager implements AutoCloseable {
         logger.info("Build sink writer's manager. params = {}", sinkParams.toString());
     }
 
-    public Sink<String> buildSink(Properties localProperties) {
+    public Sink buildSink(Properties localProperties) {
         String targetTable = localProperties.getProperty(TARGET_TABLE_NAME);
         int maxFlushBufferSize = Integer.parseInt(localProperties.getProperty(MAX_BUFFER_SIZE));
 
         return buildSink(targetTable, maxFlushBufferSize);
     }
 
-    public Sink<String> buildSink(String targetTable, int maxBufferSize) {
+    public Sink buildSink(String targetTable, int maxBufferSize) {
         Preconditions.checkNotNull(clickHouseSinkScheduledCheckerAndCleaner);
         Preconditions.checkNotNull(clickHouseWriter);
 
@@ -49,9 +49,9 @@ public class ClickHouseSinkManager implements AutoCloseable {
         clickHouseSinkScheduledCheckerAndCleaner.addSinkBuffer(clickHouseSinkBuffer);
 
         if (sinkParams.isIgnoringClickHouseSendingExceptionEnabled()) {
-            return new UnexceptionableSink<>(clickHouseSinkBuffer);
+            return new UnexceptionableSink(clickHouseSinkBuffer);
         } else {
-            return new ExceptionsThrowableSink<>(clickHouseSinkBuffer);
+            return new ExceptionsThrowableSink(clickHouseSinkBuffer);
         }
 
     }

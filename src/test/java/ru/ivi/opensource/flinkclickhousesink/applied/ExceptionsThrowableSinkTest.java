@@ -16,13 +16,13 @@ import static org.mockito.Mockito.*;
 
 public class ExceptionsThrowableSinkTest {
 
-    private Sink<String> exceptionsThrowableSink;
+    private Sink exceptionsThrowableSink;
     private ClickHouseSinkBuffer buffer;
 
     @Before
     public void setUp() throws Exception {
         buffer = Mockito.mock(ClickHouseSinkBuffer.class);
-        exceptionsThrowableSink = new ExceptionsThrowableSink<>(buffer);
+        exceptionsThrowableSink = new ExceptionsThrowableSink(buffer);
         MockitoAnnotations.initMocks(this);
     }
 

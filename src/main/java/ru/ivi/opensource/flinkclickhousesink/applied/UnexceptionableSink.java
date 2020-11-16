@@ -1,6 +1,6 @@
 package ru.ivi.opensource.flinkclickhousesink.applied;
 
-public class UnexceptionableSink<T> implements Sink<T> {
+public class UnexceptionableSink implements Sink {
     private final ClickHouseSinkBuffer clickHouseSinkBuffer;
 
     public UnexceptionableSink(ClickHouseSinkBuffer buffer) {
@@ -8,8 +8,8 @@ public class UnexceptionableSink<T> implements Sink<T> {
     }
 
     @Override
-    public void put(T message) {
-        clickHouseSinkBuffer.put((String) message);
+    public void put(String message) {
+        clickHouseSinkBuffer.put(message);
     }
 
     @Override

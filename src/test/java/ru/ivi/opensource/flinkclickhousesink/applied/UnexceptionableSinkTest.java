@@ -14,13 +14,13 @@ import static org.mockito.Mockito.times;
 
 public class UnexceptionableSinkTest {
 
-    private Sink<String> unexceptionableSink;
+    private Sink unexceptionableSink;
     private ClickHouseSinkBuffer buffer;
 
     @Before
     public void setUp() throws Exception {
         buffer = Mockito.mock(ClickHouseSinkBuffer.class);
-        unexceptionableSink = new UnexceptionableSink<>(buffer);
+        unexceptionableSink = new UnexceptionableSink(buffer);
         MockitoAnnotations.initMocks(this);
     }
 
