@@ -3,29 +3,34 @@ package ru.ivi.opensource.flinkclickhousesink.applied;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.ivi.opensource.flinkclickhousesink.model.ClickhouseRequestBlank;
+import ru.ivi.opensource.flinkclickhousesink.model.ClickHouseRequestBlank;
+import ru.ivi.opensource.flinkclickhousesink.util.FutureUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-public class ClickhouseSinkBuffer implements AutoCloseable {
-    private static final Logger logger = LoggerFactory.getLogger(ClickhouseSinkBuffer.class);
+public class ClickHouseSinkBuffer implements AutoCloseable {
+    private static final Logger logger = LoggerFactory.getLogger(ClickHouseSinkBuffer.class);
 
-    private final ClickhouseWriter writer;
+    private final ClickHouseWriter writer;
     private final String targetTable;
     private final int maxFlushBufferSize;
     private final long timeoutMillis;
     private final List<String> localValues;
+    private final List<CompletableFuture<Boolean>> futures;
 
     private volatile long lastAddTimeMillis = 0L;
 
-    private ClickhouseSinkBuffer(
-            ClickhouseWriter chWriter,
+    private ClickHouseSinkBuffer(
+            ClickHouseWriter chWriter,
             long timeout,
             int maxBuffer,
-            String table
+            String table,
+            List<CompletableFuture<Boolean>> futures
     ) {
         writer = chWriter;
         localValues = new ArrayList<>();
@@ -33,7 +38,9 @@ public class ClickhouseSinkBuffer implements AutoCloseable {
         maxFlushBufferSize = maxBuffer;
         targetTable = table;
 
-        logger.info("Instance Clickhouse Sink, target table = {}, buffer size = {}", this.targetTable, this.maxFlushBufferSize);
+        this.futures = futures;
+
+        logger.info("Instance ClickHouse Sink, target table = {}, buffer size = {}", this.targetTable, this.maxFlushBufferSize);
     }
 
     String getTargetTable() {
@@ -54,7 +61,7 @@ public class ClickhouseSinkBuffer implements AutoCloseable {
 
     private void addToQueue() {
         List<String> deepCopy = buildDeepCopy(localValues);
-        ClickhouseRequestBlank params = ClickhouseRequestBlank.Builder
+        ClickHouseRequestBlank params = ClickHouseRequestBlank.Builder
                 .aBuilder()
                 .withValues(deepCopy)
                 .withTargetTable(targetTable)
@@ -87,22 +94,33 @@ public class ClickhouseSinkBuffer implements AutoCloseable {
         return Collections.unmodifiableList(new ArrayList<>(original));
     }
 
+    public void assertFuturesNotFailedYet() throws ExecutionException, InterruptedException {
+        CompletableFuture<Void> future = FutureUtil.allOf(futures);
+        //nonblocking operation
+        if (future.isCompletedExceptionally()) {
+            future.get();
+        }
+    }
+
     @Override
     public void close() {
+        logger.info("ClickHouse sink buffer is shutting down.");
         if (localValues != null && localValues.size() > 0) {
             addToQueue();
         }
+        logger.info("ClickHouse sink buffer shutdown complete.");
     }
 
     public static final class Builder {
         private String targetTable;
         private int maxFlushBufferSize;
         private int timeoutSec;
+        private List<CompletableFuture<Boolean>> futures;
 
         private Builder() {
         }
 
-        public static Builder aClickhouseSinkBuffer() {
+        public static Builder aClickHouseSinkBuffer() {
             return new Builder();
         }
 
@@ -121,17 +139,23 @@ public class ClickhouseSinkBuffer implements AutoCloseable {
             return this;
         }
 
-        public ClickhouseSinkBuffer build(ClickhouseWriter writer) {
+        public Builder withFutures(List<CompletableFuture<Boolean>> futures) {
+            this.futures = futures;
+            return this;
+        }
+
+        public ClickHouseSinkBuffer build(ClickHouseWriter writer) {
 
             Preconditions.checkNotNull(targetTable);
             Preconditions.checkArgument(maxFlushBufferSize > 0);
             Preconditions.checkArgument(timeoutSec > 0);
 
-            return new ClickhouseSinkBuffer(
+            return new ClickHouseSinkBuffer(
                     writer,
                     TimeUnit.SECONDS.toMillis(this.timeoutSec),
                     this.maxFlushBufferSize,
-                    this.targetTable
+                    this.targetTable,
+                    this.futures
             );
         }
     }

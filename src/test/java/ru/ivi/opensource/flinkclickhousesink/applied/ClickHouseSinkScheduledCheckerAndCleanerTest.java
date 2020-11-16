@@ -9,32 +9,40 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
-import ru.ivi.opensource.flinkclickhousesink.model.ClickhouseClusterSettings;
-import ru.ivi.opensource.flinkclickhousesink.model.ClickhouseSinkCommonParams;
+import ru.ivi.opensource.flinkclickhousesink.model.ClickHouseClusterSettings;
+import ru.ivi.opensource.flinkclickhousesink.model.ClickHouseSinkCommonParams;
+import ru.ivi.opensource.flinkclickhousesink.model.ClickHouseSinkCommonParams;
+import ru.ivi.opensource.flinkclickhousesink.model.ClickHouseSinkConst;
 import ru.ivi.opensource.flinkclickhousesink.util.ConfigUtil;
 
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.awaitility.Awaitility.await;
 
 @RunWith(MockitoJUnitRunner.Silent.class)
-public class ClickhouseSinkScheduledCheckerTest {
+public class ClickHouseSinkScheduledCheckerAndCleanerTest {
 
-    private ClickhouseSinkScheduledChecker checker;
+    private ClickHouseSinkScheduledCheckerAndCleaner checker;
     private AtomicInteger counter = new AtomicInteger(0);
+    private List<CompletableFuture<Boolean>> futures = Collections.synchronizedList(new LinkedList<>());
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         Config config = ConfigFactory.load();
         Map<String, String> params = ConfigUtil.toMap(config);
-        params.put(ClickhouseClusterSettings.CLICKHOUSE_USER, "");
-        params.put(ClickhouseClusterSettings.CLICKHOUSE_PASSWORD, "");
-        params.put(ClickhouseClusterSettings.CLICKHOUSE_HOSTS, "http://localhost:8123");
+        params.put(ClickHouseClusterSettings.CLICKHOUSE_USER, "");
+        params.put(ClickHouseClusterSettings.CLICKHOUSE_PASSWORD, "");
+        params.put(ClickHouseClusterSettings.CLICKHOUSE_HOSTS, "http://localhost:8123");
+        params.put(ClickHouseSinkConst.IGNORING_CLICKHOUSE_SENDING_EXCEPTION_ENABLED, "true");
 
-        ClickhouseSinkCommonParams commonParams = new ClickhouseSinkCommonParams(params);
-        checker = new ClickhouseSinkScheduledChecker(commonParams);
+        ClickHouseSinkCommonParams commonParams = new ClickHouseSinkCommonParams(params);
+        checker = new ClickHouseSinkScheduledCheckerAndCleaner(commonParams, futures);
 
         MockitoAnnotations.initMocks(this);
     }
@@ -51,7 +59,7 @@ public class ClickhouseSinkScheduledCheckerTest {
 
     private void test(int numBuffers, int target) {
         for (int i = 0; i < numBuffers; i++) {
-            ClickhouseSinkBuffer buffer = buildMockBuffer();
+            ClickHouseSinkBuffer buffer = buildMockBuffer();
             checker.addSinkBuffer(buffer);
         }
 
@@ -65,8 +73,8 @@ public class ClickhouseSinkScheduledCheckerTest {
                 });
     }
 
-    private ClickhouseSinkBuffer buildMockBuffer() {
-        ClickhouseSinkBuffer buffer = Mockito.mock(ClickhouseSinkBuffer.class);
+    private ClickHouseSinkBuffer buildMockBuffer() {
+        ClickHouseSinkBuffer buffer = Mockito.mock(ClickHouseSinkBuffer.class);
         Mockito.doAnswer(invocationOnMock -> {
             counter.incrementAndGet();
             return invocationOnMock;

@@ -1,15 +1,15 @@
 
-# Flink-Clickhouse-Sink
+# Flink-ClickHouse-Sink
 
 [![Build Status](https://travis-ci.com/ivi-ru/flink-clickhouse-sink.svg?branch=master)](https://travis-ci.com/ivi-ru/flink-clickhouse-sink)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/ru.ivi.opensource/flink-clickhouse-sink/badge.svg)](https://maven-badges.herokuapp.com/maven-central/ru.ivi.opensource/flink-clickhouse-sink/)
 
 ## Description
 
-[Flink](https://github.com/apache/flink) sink for [Clickhouse](https://github.com/yandex/ClickHouse) database. 
+[Flink](https://github.com/apache/flink) sink for [ClickHouse](https://github.com/yandex/ClickHouse) database. 
 Powered by [Async Http Client](https://github.com/AsyncHttpClient/async-http-client).
 
-High-performance library for loading data to Clickhouse. 
+High-performance library for loading data to ClickHouse. 
 
 It has two triggers for loading data:
 _by timeout_ and _by buffer size_.
@@ -48,17 +48,21 @@ common and for each sink in you operators chain.
  
  `clickhouse.sink.retries` - max number of retries,
  
- `clickhouse.sink.failed-records-path`- path for failed records.
+ `clickhouse.sink.failed-records-path`- path for failed records,
+ 
+ `clickhouse.sink.ignoring-clickhouse-sending-exception-enabled` - boolean parameter responsible for raising (false) or not (true) ClickHouse sending exception in main thread. 
+ if `ignoring-clickhouse-sending-exception-enabled` is true, exception while clickhouse sending is ignored and failed data automatically goes to the disk.
+ if `ignoring-clickhouse-sending-exception-enabled` is false, clickhouse sending exception thrown in "main" thread (thread which called ClickhHouseSink::invoke) and data also goes to the disk.
 
 **The sink part** (use in chain):
 
- `clickhouse.sink.target-table` - target table in Clickhouse,
+ `clickhouse.sink.target-table` - target table in ClickHouse,
  
  `clickhouse.sink.max-buffer-size`- buffer size.
 
 ### In code
 The main thing: the clickhouse-sink works with events in string 
-(Clickhouse insert format, like CSV) format.
+(ClickHouse insert format, like CSV) format.
 You have to convert your event to csv format (like usual insert in database).
 
 For example, you have event-pojo:
@@ -97,17 +101,18 @@ You have to add global parameters for Flink environment:
 StreamExecutionEnvironment environment = StreamExecutionEnvironment.createLocalEnvironment();
 Map<String, String> globalParameters = new HashMap<>();
 
-// clickhouse cluster properties
-globalParameters.put(ClickhouseClusterSettings.CLICKHOUSE_HOSTS, ...);
-globalParameters.put(ClickhouseClusterSettings.CLICKHOUSE_USER, ...);
-globalParameters.put(ClickhouseClusterSettings.CLICKHOUSE_PASSWORD, ...);
+// ClickHouse cluster properties
+globalParameters.put(ClickHouseClusterSettings.CLICKHOUSE_HOSTS, ...);
+globalParameters.put(ClickHouseClusterSettings.CLICKHOUSE_USER, ...);
+globalParameters.put(ClickHouseClusterSettings.CLICKHOUSE_PASSWORD, ...);
 
 // sink common
-globalParameters.put(ClickhouseSinkConsts.TIMEOUT_SEC, ...);
-globalParameters.put(ClickhouseSinkConsts.FAILED_RECORDS_PATH, ...);
-globalParameters.put(ClickhouseSinkConsts.NUM_WRITERS, ...);
-globalParameters.put(ClickhouseSinkConsts.NUM_RETRIES, ...);
-globalParameters.put(ClickhouseSinkConsts.QUEUE_MAX_CAPACITY, ...);
+globalParameters.put(ClickHouseSinkConsts.TIMEOUT_SEC, ...);
+globalParameters.put(ClickHouseSinkConsts.FAILED_RECORDS_PATH, ...);
+globalParameters.put(ClickHouseSinkConsts.NUM_WRITERS, ...);
+globalParameters.put(ClickHouseSinkConsts.NUM_RETRIES, ...);
+globalParameters.put(ClickHouseSinkConsts.QUEUE_MAX_CAPACITY, ...);
+globalParameters.put(ClickHouseSinkConsts.IGNORING_EXCEPTION_ENABLED, ...);
 
 // set global paramaters
 ParameterTool parameters = ParameterTool.fromMap(buildGlobalParameters(config));
@@ -128,15 +133,15 @@ public YourEventConverter {
 
 // create props for sink
 Properties props = new Properties();
-props.put(ClickhouseSinkConsts.TARGET_TABLE_NAME, "your_table");
-props.put(ClickhouseSinkConsts.MAX_BUFFER_SIZE, "10000");
+props.put(ClickHouseSinkConsts.TARGET_TABLE_NAME, "your_table");
+props.put(ClickHouseSinkConsts.MAX_BUFFER_SIZE, "10000");
 
 // build chain
 DataStream<YourEvent> dataStream = ...;
 dataStream.map(YourEventConverter::toClickHouseInsertFormat)
-          .name("convert YourEvent to Clickhouse table format")
-          .addSink(new ClickhouseSink(props))
-          .name("your_table clickhouse sink);
+          .name("convert YourEvent to ClickHouse table format")
+          .addSink(new ClickHouseSink(props))
+          .name("your_table ClickHouse sink);
 ```
 
 ## Roadmap

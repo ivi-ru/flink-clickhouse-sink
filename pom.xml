@@ -12,14 +12,14 @@
 
     <groupId>ru.ivi.opensource</groupId>
     <artifactId>flink-clickhouse-sink</artifactId>
-    <version>1.1.0-SNAPSHOT</version>
+    <version>1.2.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>Flink Clickhouse sink</name>
+    <name>Flink ClickHouse sink</name>
 
     <description>
-        Flink sink for Clickhouse database. Powered by Async Http Client.
-        High-performance library for loading data to Clickhouse.
+        Flink sink for ClickHouse database. Powered by Async Http Client.
+        High-performance library for loading data to ClickHouse.
     </description>
     <url>https://github.com/ivi-ru/flink-clickhouse-sink.git</url>
 
@@ -76,6 +76,18 @@
         <developer>
             <id>aleksanchezz</id>
             <name>Alexander Lanko</name>
+        </developer>
+        <developer>
+            <id>ashulenko</id>
+            <name>Andrey Shulenko</name>
+        </developer>
+        <developer>
+            <id>akozhabay</id>
+            <name>Alisher Kozhabay</name>
+        </developer>
+        <developer>
+            <id>sserdyukov</id>
+            <name>Stanislav Serdyukov</name>
         </developer>
     </developers>
 

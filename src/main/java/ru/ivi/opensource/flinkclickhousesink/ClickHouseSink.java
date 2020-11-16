@@ -4,25 +4,25 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.ivi.opensource.flinkclickhousesink.applied.ClickhouseSinkBuffer;
-import ru.ivi.opensource.flinkclickhousesink.applied.ClickhouseSinkManager;
+import ru.ivi.opensource.flinkclickhousesink.applied.ClickHouseSinkManager;
+import ru.ivi.opensource.flinkclickhousesink.applied.Sink;
 
 import java.util.Map;
 import java.util.Properties;
 
 
-public class ClickhouseSink extends RichSinkFunction<String> {
+public class ClickHouseSink extends RichSinkFunction<String> {
 
-    private static final Logger logger = LoggerFactory.getLogger(ClickhouseSink.class);
+    private static final Logger logger = LoggerFactory.getLogger(ClickHouseSink.class);
 
     private static final Object DUMMY_LOCK = new Object();
 
     private final Properties localProperties;
 
-    private volatile static transient ClickhouseSinkManager sinkManager;
-    private transient ClickhouseSinkBuffer clickhouseSinkBuffer;
+    private volatile static transient ClickHouseSinkManager sinkManager;
+    private transient Sink<String> sink;
 
-    public ClickhouseSink(Properties properties) {
+    public ClickHouseSink(Properties properties) {
         this.localProperties = properties;
     }
 
@@ -36,33 +36,33 @@ public class ClickhouseSink extends RichSinkFunction<String> {
                             .getGlobalJobParameters()
                             .toMap();
 
-                    sinkManager = new ClickhouseSinkManager(params);
+                    sinkManager = new ClickHouseSinkManager(params);
                 }
             }
         }
 
-        clickhouseSinkBuffer = sinkManager.buildBuffer(localProperties);
+        sink = sinkManager.buildSink(localProperties);
     }
 
     /**
-     * Add csv to buffer
+     * Add csv to sink
      *
      * @param recordAsCSV csv-event
      */
     @Override
     public void invoke(String recordAsCSV, Context context) {
         try {
-            clickhouseSinkBuffer.put(recordAsCSV);
+            sink.put(recordAsCSV);
         } catch (Exception e) {
-            logger.error("Error while sending data to Clickhouse, record = {}", recordAsCSV, e);
+            logger.error("Error while sending data to ClickHouse, record = {}", recordAsCSV, e);
             throw new RuntimeException(e);
         }
     }
 
     @Override
     public void close() throws Exception {
-        if (clickhouseSinkBuffer != null) {
-            clickhouseSinkBuffer.close();
+        if (sink != null) {
+            sink.close();
         }
 
         if (sinkManager != null) {

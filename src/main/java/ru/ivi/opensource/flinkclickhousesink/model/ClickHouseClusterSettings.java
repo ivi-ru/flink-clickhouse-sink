@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
-public class ClickhouseClusterSettings {
+public class ClickHouseClusterSettings {
 
     public static final String CLICKHOUSE_HOSTS = "clickhouse.access.hosts";
     public static final String CLICKHOUSE_USER = "clickhouse.access.user";
@@ -25,7 +25,7 @@ public class ClickhouseClusterSettings {
 
     private int currentHostId = 0;
 
-    public ClickhouseClusterSettings(Map<String, String> parameters) {
+    public ClickHouseClusterSettings(Map<String, String> parameters) {
         Preconditions.checkNotNull(parameters);
 
         String hostsString = parameters.get(CLICKHOUSE_HOSTS);
@@ -55,7 +55,7 @@ public class ClickhouseClusterSettings {
     private static List<String> buildHostsAndPort(String hostsString) {
         return Arrays.stream(hostsString
                 .split(ConfigUtil.HOST_DELIMITER))
-                .map(ClickhouseClusterSettings::checkHttpAndAdd)
+                .map(ClickHouseClusterSettings::checkHttpAndAdd)
                 .collect(Collectors.toList());
     }
 
@@ -109,7 +109,7 @@ public class ClickhouseClusterSettings {
 
     @Override
     public String toString() {
-        return "ClickhouseClusterSettings{" +
+        return "ClickHouseClusterSettings{" +
                 "hostsWithPorts=" + hostsWithPorts +
                 ", credentials='" + credentials + '\'' +
                 ", authorizationRequired=" + authorizationRequired +

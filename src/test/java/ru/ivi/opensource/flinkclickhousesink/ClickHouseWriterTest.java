@@ -1,31 +1,31 @@
 package ru.ivi.opensource.flinkclickhousesink;
 
+import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Striped;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import org.asynchttpclient.AsyncHttpClient;
-import org.asynchttpclient.BoundRequestBuilder;
-import org.asynchttpclient.ListenableFuture;
-import org.asynchttpclient.Response;
+import org.asynchttpclient.*;
+import org.hamcrest.CoreMatchers;
 import org.jmock.lib.concurrent.Blitzer;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
+import org.mockito.Mockito;
 import org.testcontainers.containers.ClickHouseContainer;
-import ru.ivi.opensource.flinkclickhousesink.applied.ClickhouseSinkBuffer;
-import ru.ivi.opensource.flinkclickhousesink.applied.ClickhouseSinkManager;
-import ru.ivi.opensource.flinkclickhousesink.model.ClickhouseClusterSettings;
+import org.testcontainers.shaded.com.google.common.collect.ImmutableList;
+import ru.ivi.opensource.flinkclickhousesink.applied.ClickHouseSinkManager;
+import ru.ivi.opensource.flinkclickhousesink.applied.ClickHouseWriter;
+import ru.ivi.opensource.flinkclickhousesink.applied.Sink;
+import ru.ivi.opensource.flinkclickhousesink.model.ClickHouseClusterSettings;
+import ru.ivi.opensource.flinkclickhousesink.model.ClickHouseRequestBlank;
+import ru.ivi.opensource.flinkclickhousesink.model.ClickHouseSinkCommonParams;
+import ru.ivi.opensource.flinkclickhousesink.model.ClickHouseSinkConst;
 import ru.ivi.opensource.flinkclickhousesink.util.ConfigUtil;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
@@ -36,8 +36,9 @@ import java.util.concurrent.locks.Lock;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.asynchttpclient.Dsl.asyncHttpClient;
 import static org.awaitility.Awaitility.await;
+import static org.junit.Assert.fail;
 
-public class ClickhouseWriterTest {
+public class ClickHouseWriterTest {
 
     private static final int MAX_ATTEMPT = 2;
     private static final String JDBC_DRIVER = "ru.yandex.clickhouse.ClickHouseDriver";
@@ -47,20 +48,25 @@ public class ClickhouseWriterTest {
     private HikariDataSource hikariDataSource;
 
     @Rule
-    public ClickHouseContainer clickhouse = new ClickHouseContainer();
-    private ClickhouseSinkManager sinkManager;
+    public ClickHouseContainer clickHouse = new ClickHouseContainer();
+
+    private ClickHouseSinkManager sinkManager;
+
+    private ClickHouseSinkCommonParams clickHouseSinkCommonParams;
 
     @Before
     public void setUp() throws Exception {
         Config config = ConfigFactory.load();
         Map<String, String> params = ConfigUtil.toMap(config);
 
-        params.put(ClickhouseClusterSettings.CLICKHOUSE_USER, "");
-        params.put(ClickhouseClusterSettings.CLICKHOUSE_PASSWORD, "");
-        int dockerActualPort = clickhouse.getMappedPort(HTTP_CLICKHOUSE_PORT);
+        params.put(ClickHouseClusterSettings.CLICKHOUSE_USER, "");
+        params.put(ClickHouseClusterSettings.CLICKHOUSE_PASSWORD, "");
+        int dockerActualPort = clickHouse.getMappedPort(HTTP_CLICKHOUSE_PORT);
 
         // container with CH is raised for every test -> we should config host and port every time
-        params.put(ClickhouseClusterSettings.CLICKHOUSE_HOSTS, "http://localhost:" + dockerActualPort);
+        params.put(ClickHouseClusterSettings.CLICKHOUSE_HOSTS, "http://" + clickHouse.getContainerIpAddress() + ":" + dockerActualPort);
+        params.put(ClickHouseSinkConst.IGNORING_CLICKHOUSE_SENDING_EXCEPTION_ENABLED, "true");
+        clickHouseSinkCommonParams = new ClickHouseSinkCommonParams(params);
 
         asyncHttpClient = asyncHttpClient();
 
@@ -71,9 +77,9 @@ public class ClickhouseWriterTest {
         }
 
         HikariConfig hikariConfig = new HikariConfig();
-        hikariConfig.setJdbcUrl(clickhouse.getJdbcUrl());
-        hikariConfig.setUsername(clickhouse.getUsername());
-        hikariConfig.setPassword(clickhouse.getPassword());
+        hikariConfig.setJdbcUrl(clickHouse.getJdbcUrl());
+        hikariConfig.setUsername(clickHouse.getUsername());
+        hikariConfig.setPassword(clickHouse.getPassword());
         hikariDataSource = new HikariDataSource(hikariConfig);
 
         try (Connection connection = hikariDataSource.getConnection();
@@ -97,7 +103,7 @@ public class ClickhouseWriterTest {
                     "ENGINE = Log;");
         }
 
-        sinkManager = new ClickhouseSinkManager(params);
+        sinkManager = new ClickHouseSinkManager(params);
     }
 
     @After
@@ -153,7 +159,7 @@ public class ClickhouseWriterTest {
         final int numBuffers = 4;
         Striped<Lock> striped = Striped.lock(numBuffers);
 
-        List<ClickhouseSinkBuffer> buffers = new ArrayList<>();
+        List<Sink<String>> buffers = new ArrayList<>();
         ThreadLocalRandom random = ThreadLocalRandom.current();
         for (int i = 0; i < 4; i++) {
             String targetTable;
@@ -162,8 +168,8 @@ public class ClickhouseWriterTest {
             } else targetTable = "test.test1";
 
             int maxBuffer = random.nextInt(1_000, 100_000);
-            ClickhouseSinkBuffer clickhouseSinkBuffer = sinkManager.buildBuffer(targetTable, maxBuffer);
-            buffers.add(clickhouseSinkBuffer);
+            Sink<String> sink = sinkManager.buildSink(targetTable, maxBuffer);
+            buffers.add(sink);
         }
 
         final int attempts = 2_000_000;
@@ -174,23 +180,119 @@ public class ClickhouseWriterTest {
             Lock lock = striped.get(id);
             lock.lock();
             try {
-                ClickhouseSinkBuffer sinkBuffer = buffers.get(id);
+                Sink<String> sink = buffers.get(id);
                 String csv;
                 if (id % 2 != 0) {
                     csv = "(10, 'title', 'container', 'drm', 'quality')";
                 } else {
                     csv = "(11, 'title', 111)";
                 }
-                sinkBuffer.put(csv);
+                sink.put(csv);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
             } finally {
                 lock.unlock();
             }
         });
 
         await()
-                .atMost(3000, MILLISECONDS)
+                .atMost(10000, MILLISECONDS)
                 .with()
                 .pollInterval(500, MILLISECONDS)
                 .until(() -> getCount("test.test0") + getCount("test.test1") == attempts);
+    }
+
+
+    @Test
+    public void testInvalidRequestException() throws Exception {
+        ClickHouseWriter clickHouseWriter = new ClickHouseWriter(clickHouseSinkCommonParams,
+                Collections.synchronizedList(new LinkedList<>()));
+        clickHouseWriter.put(ClickHouseRequestBlank.Builder
+                .aBuilder()
+                .withValues(ImmutableList.of("('10')"))
+                .withTargetTable("test.test0")
+                .build());
+
+        try {
+            clickHouseWriter.close();
+            fail("Expected RuntimeException.");
+        } catch (RuntimeException expected) {
+        }
+    }
+
+    @Test
+    public void testWaitLastRequestSuccess() throws Exception {
+        AsyncHttpClient asyncHttpClient = Mockito.spy(Dsl.asyncHttpClient());
+
+        ClickHouseWriter clickHouseWriter = new ClickHouseWriter(clickHouseSinkCommonParams,
+                Collections.synchronizedList(Lists.newLinkedList()), asyncHttpClient);
+        clickHouseWriter.put(ClickHouseRequestBlank.Builder
+                .aBuilder()
+                .withValues(ImmutableList.of("(10, 'title', 'container', 'drm', 'quality')"))
+                .withTargetTable("test.test0")
+                .build());
+
+        clickHouseWriter.close();
+
+        await()
+                .atMost(10000, MILLISECONDS)
+                .with()
+                .pollInterval(500, MILLISECONDS)
+                .until(() -> getCount("test.test0") == 1);
+
+        Mockito.verify(asyncHttpClient, Mockito.times(1))
+                .executeRequest(Mockito.any(Request.class));
+    }
+
+    @Test
+    public void testMaxRetries() throws Exception {
+        int maxRetries = clickHouseSinkCommonParams.getMaxRetries();
+        AsyncHttpClient asyncHttpClient = Mockito.spy(Dsl.asyncHttpClient());
+
+        ClickHouseWriter clickHouseWriter = new ClickHouseWriter(clickHouseSinkCommonParams,
+                Collections.synchronizedList(Lists.newLinkedList()),
+                asyncHttpClient);
+        clickHouseWriter.put(ClickHouseRequestBlank.Builder
+                .aBuilder()
+                .withValues(ImmutableList.of("('10')"))
+                .withTargetTable("test.test0")
+                .build());
+
+        try {
+            clickHouseWriter.close();
+            fail("Expected RuntimeException.");
+        } catch (RuntimeException expected) {
+        }
+
+        Mockito.verify(asyncHttpClient, Mockito.times(maxRetries + 1))
+                .executeRequest(Mockito.any(Request.class));
+    }
+
+    @Test
+    public void testExceptionInCallback() throws Exception {
+        int maxRetries = clickHouseSinkCommonParams.getMaxRetries();
+        AsyncHttpClient asyncHttpClient = Mockito.spy(Dsl.asyncHttpClient());
+
+        Mockito.when(asyncHttpClient.executeRequest(Mockito.any(Request.class)))
+                .thenReturn(new ListenableFuture.CompletedFailure<>(new NullPointerException("NPE")));
+
+        ClickHouseWriter clickHouseWriter = new ClickHouseWriter(clickHouseSinkCommonParams,
+                Collections.synchronizedList(Lists.newLinkedList()),
+                asyncHttpClient);
+        clickHouseWriter.put(ClickHouseRequestBlank.Builder.aBuilder()
+                .withValues(ImmutableList.of("(10, 'title', 'container', 'drm', 'quality')"))
+                .withTargetTable("test.test0")
+                .build());
+
+        try {
+            clickHouseWriter.close();
+            fail("Expected RuntimeException.");
+        } catch (RuntimeException expected) {
+            Assert.assertThat(expected.getMessage(), CoreMatchers.containsString("NPE"));
+        }
+
+        Mockito.verify(asyncHttpClient, Mockito.times(maxRetries + 1)).executeRequest(Mockito.any(Request.class));
     }
 }
