@@ -2,15 +2,18 @@ package ru.ivi.opensource.flinkclickhousesink.model;
 
 import java.util.List;
 
-public class ClickhouseRequestBlank {
+public class ClickHouseRequestBlank {
     private final List<String> values;
     private final String targetTable;
     private int attemptCounter;
 
-    public ClickhouseRequestBlank(List<String> values, String targetTable) {
+    private Exception exception;
+
+    public ClickHouseRequestBlank(List<String> values, String targetTable, Exception exception) {
         this.values = values;
         this.targetTable = targetTable;
         this.attemptCounter = 0;
+        this.exception = exception;
     }
 
     public List<String> getValues() {
@@ -29,9 +32,18 @@ public class ClickhouseRequestBlank {
         return targetTable;
     }
 
+    public Exception getException() {
+        return exception;
+    }
+
+    public void setException(Exception exception) {
+        this.exception = exception;
+    }
+
     public static final class Builder {
         private List<String> values;
         private String targetTable;
+        private Exception exception;
 
         private Builder() {
         }
@@ -50,17 +62,23 @@ public class ClickhouseRequestBlank {
             return this;
         }
 
-        public ClickhouseRequestBlank build() {
-            return new ClickhouseRequestBlank(values, targetTable);
+        public Builder withException(Exception exception) {
+            this.exception = exception;
+            return this;
+        }
+
+        public ClickHouseRequestBlank build() {
+            return new ClickHouseRequestBlank(values, targetTable, exception);
         }
     }
 
     @Override
     public String toString() {
-        return "ClickhouseRequestBlank{" +
+        return "ClickHouseRequestBlank{" +
                 "values=" + values +
                 ", targetTable='" + targetTable + '\'' +
                 ", attemptCounter=" + attemptCounter +
+                ", exception=" + exception +
                 '}';
     }
 }
