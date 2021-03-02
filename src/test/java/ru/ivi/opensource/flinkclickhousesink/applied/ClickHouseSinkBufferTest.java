@@ -24,6 +24,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -31,21 +32,30 @@ import static org.junit.Assert.assertTrue;
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class ClickHouseSinkBufferTest {
 
-    private static final int NUM_ATTEMPTS = 100;
-    private static final int TIMEOUT_SEC = 2;
+    private static final int BUFFER_SIZE_10000 = 10000;
+    private static final int BUFFER_SIZE_10 = 10;
+    private static final int TIMEOUT_SEC = 10;
 
-    private ClickHouseSinkBuffer buffer;
+    private ClickHouseSinkBuffer bufferTimeTrigger;
+    private ClickHouseSinkBuffer bufferSizeTrigger;
     private ClickHouseWriter writer;
-    private ClickHouseSinkScheduledCheckerAndCleaner checker;
     private List<CompletableFuture<Boolean>> futures = Collections.synchronizedList(new LinkedList<>());
 
     @Before
     public void setUp() {
         writer = Mockito.mock(ClickHouseWriter.class);
-        buffer = ClickHouseSinkBuffer.Builder
+        bufferTimeTrigger = ClickHouseSinkBuffer.Builder
                 .aClickHouseSinkBuffer()
                 .withTargetTable("table")
-                .withMaxFlushBufferSize(NUM_ATTEMPTS)
+                .withMaxFlushBufferSize(BUFFER_SIZE_10000)
+                .withTimeoutSec(TIMEOUT_SEC)
+                .withFutures(futures)
+                .build(writer);
+
+        bufferSizeTrigger = ClickHouseSinkBuffer.Builder
+                .aClickHouseSinkBuffer()
+                .withTargetTable("table")
+                .withMaxFlushBufferSize(BUFFER_SIZE_10)
                 .withTimeoutSec(TIMEOUT_SEC)
                 .withFutures(futures)
                 .build(writer);
@@ -62,17 +72,17 @@ public class ClickHouseSinkBufferTest {
         Mockito.doAnswer(invocationOnMock -> {
             ClickHouseRequestBlank blank = invocationOnMock.getArgument(0);
             System.out.println(blank);
-            assertEquals(NUM_ATTEMPTS, blank.getValues().size());
+            assertEquals(BUFFER_SIZE_10000, blank.getValues().size());
             assertEquals("table", blank.getTargetTable());
             return invocationOnMock;
         }).when(writer).put(Mockito.any());
 
         for (int i = 0; i < 100; i++) {
-            buffer.put("csv");
+            bufferTimeTrigger.put("csv");
         }
     }
 
-    private void initChecker() {
+    private ClickHouseSinkScheduledCheckerAndCleaner initChecker() {
         Config config = ConfigFactory.load();
         Map<String, String> params = ConfigUtil.toMap(config);
         params.put(ClickHouseClusterSettings.CLICKHOUSE_USER, "");
@@ -82,30 +92,56 @@ public class ClickHouseSinkBufferTest {
         params.put(ClickHouseSinkConst.IGNORING_CLICKHOUSE_SENDING_EXCEPTION_ENABLED, "true");
 
         ClickHouseSinkCommonParams commonParams = new ClickHouseSinkCommonParams(params);
-        checker = new ClickHouseSinkScheduledCheckerAndCleaner(commonParams, futures);
+        return new ClickHouseSinkScheduledCheckerAndCleaner(commonParams, futures);
     }
 
     @Test
-    public void putWithCheck() throws ExecutionException, InterruptedException {
-        initChecker();
-        checker.addSinkBuffer(buffer);
+    public void testAddToQueueByTimeTrigger() {
+        ClickHouseSinkScheduledCheckerAndCleaner checker = initChecker();
+        checker.addSinkBuffer(bufferTimeTrigger);
 
         AtomicBoolean flag = new AtomicBoolean();
         Mockito.doAnswer(invocationOnMock -> {
             ClickHouseRequestBlank blank = invocationOnMock.getArgument(0);
 
-            assertTrue(NUM_ATTEMPTS > blank.getValues().size());
+            assertTrue(BUFFER_SIZE_10000 > blank.getValues().size());
             assertEquals("table", blank.getTargetTable());
             flag.set(true);
             return invocationOnMock;
         }).when(writer).put(Mockito.any());
 
-        for (int i = 0; i < 80; i++) {
-            buffer.put("csv");
+        for (int i = 0; i < 800; i++) {
+            bufferTimeTrigger.put("csv");
         }
 
         await()
-                .atMost(5000, MILLISECONDS)
+                .atMost(15, SECONDS)
+                .with()
+                .pollInterval(200, MILLISECONDS)
+                .until(flag::get);
+    }
+
+    @Test
+    public void testAddToQueueBySizeTrigger() {
+        ClickHouseSinkScheduledCheckerAndCleaner checker = initChecker();
+        checker.addSinkBuffer(bufferSizeTrigger);
+
+        AtomicBoolean flag = new AtomicBoolean();
+        Mockito.doAnswer(invocationOnMock -> {
+            ClickHouseRequestBlank blank = invocationOnMock.getArgument(0);
+
+            assertEquals(BUFFER_SIZE_10, blank.getValues().size());
+            assertEquals("table", blank.getTargetTable());
+            flag.set(true);
+            return invocationOnMock;
+        }).when(writer).put(Mockito.any());
+
+        for (int i = 0; i < 800; i++) {
+            bufferSizeTrigger.put("csv");
+        }
+
+        await()
+                .atMost(TIMEOUT_SEC, SECONDS)
                 .with()
                 .pollInterval(200, MILLISECONDS)
                 .until(flag::get);

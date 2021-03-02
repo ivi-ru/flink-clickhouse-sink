@@ -23,7 +23,7 @@ public class ClickHouseSinkBuffer implements AutoCloseable {
     private final List<String> localValues;
     private final List<CompletableFuture<Boolean>> futures;
 
-    private volatile long lastAddTimeMillis = 0L;
+    private volatile long lastAddTimeMillis = System.currentTimeMillis();
 
     private ClickHouseSinkBuffer(
             ClickHouseWriter chWriter,
@@ -50,12 +50,12 @@ public class ClickHouseSinkBuffer implements AutoCloseable {
     public void put(String recordAsCSV) {
         tryAddToQueue();
         localValues.add(recordAsCSV);
-        lastAddTimeMillis = System.currentTimeMillis();
     }
 
     synchronized void tryAddToQueue() {
         if (flushCondition()) {
             addToQueue();
+            lastAddTimeMillis = System.currentTimeMillis();
         }
     }
 
@@ -82,10 +82,6 @@ public class ClickHouseSinkBuffer implements AutoCloseable {
     }
 
     private boolean checkTime() {
-        if (lastAddTimeMillis == 0) {
-            return false;
-        }
-
         long current = System.currentTimeMillis();
         return current - lastAddTimeMillis > timeoutMillis;
     }

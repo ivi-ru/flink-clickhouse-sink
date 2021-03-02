@@ -18,8 +18,7 @@ _by timeout_ and _by buffer size_.
 |flink    |flink-clickhouse-sink | 
 |:-------:|:--------------------:| 
 |1.3.*    |1.0.0                 |
-|1.9.0    |1.1.0                 |
-|1.9.0    |1.2.0                 |
+|1.9.0    |1.3.0                 |
 
 
 ### Install
@@ -30,7 +29,7 @@ _by timeout_ and _by buffer size_.
 <dependency>
   <groupId>ru.ivi.opensource</groupId>
   <artifactId>flink-clickhouse-sink</artifactId>
-  <version>1.2.0</version>
+  <version>1.3.0</version>
 </dependency>
 ```
 

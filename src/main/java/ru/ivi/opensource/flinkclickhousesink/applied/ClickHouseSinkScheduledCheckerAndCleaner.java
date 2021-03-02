@@ -37,8 +37,7 @@ public class ClickHouseSinkScheduledCheckerAndCleaner implements AutoCloseable {
     private Runnable getTask() {
         return () -> {
             synchronized (this) {
-                logger.debug("Start checking buffers and cleanup futures: Before cleanup = {}." +
-                        " Current count of buffers = {}", futures.size(), clickHouseSinkBuffers.size());
+                logger.debug("Start checking buffers and cleanup futures: Before cleanup = {}.", futures.size());
                 futures.removeIf(filter);
                 clickHouseSinkBuffers.forEach(ClickHouseSinkBuffer::tryAddToQueue);
             }
