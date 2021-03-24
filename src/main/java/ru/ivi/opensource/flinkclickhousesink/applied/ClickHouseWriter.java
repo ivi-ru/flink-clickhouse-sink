@@ -72,7 +72,7 @@ public class ClickHouseWriter implements AutoCloseable {
                 Integer.MAX_VALUE,
                 60L,
                 TimeUnit.SECONDS,
-                new LinkedBlockingQueue<>(),
+                new SynchronousQueue<>(),
                 callbackServiceFactory);
 
 
