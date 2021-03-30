@@ -64,17 +64,7 @@ public class ClickHouseWriter implements AutoCloseable {
         service = Executors.newFixedThreadPool(sinkParams.getNumWriters(), threadFactory);
 
         ThreadFactory callbackServiceFactory = ThreadUtil.threadFactory("clickhouse-writer-callback-executor");
-
-        int cores = Runtime.getRuntime().availableProcessors();
-        int coreThreadsNum = Math.max(cores / 4, 2);
-        callbackService = new ThreadPoolExecutor(
-                coreThreadsNum,
-                Integer.MAX_VALUE,
-                60L,
-                TimeUnit.SECONDS,
-                new LinkedBlockingQueue<>(),
-                callbackServiceFactory);
-
+        callbackService = Executors.newCachedThreadPool(callbackServiceFactory);
 
         int numWriters = sinkParams.getNumWriters();
         tasks = Lists.newArrayListWithCapacity(numWriters);
