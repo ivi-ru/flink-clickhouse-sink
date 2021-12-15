@@ -1,6 +1,5 @@
 package ru.ivi.opensource.flinkclickhousesink.applied;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -8,9 +7,10 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.concurrent.ExecutionException;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 public class UnexceptionableSinkTest {
 
@@ -18,14 +18,10 @@ public class UnexceptionableSinkTest {
     private ClickHouseSinkBuffer buffer;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         buffer = Mockito.mock(ClickHouseSinkBuffer.class);
         unexceptionableSink = new UnexceptionableSink(buffer);
         MockitoAnnotations.initMocks(this);
-    }
-
-    @After
-    public void tearDown() throws Exception {
     }
 
     @Test

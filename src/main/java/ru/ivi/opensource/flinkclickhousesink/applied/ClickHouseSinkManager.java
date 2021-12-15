@@ -24,7 +24,7 @@ public class ClickHouseSinkManager implements AutoCloseable {
         sinkParams = new ClickHouseSinkCommonParams(globalParams);
         clickHouseWriter = new ClickHouseWriter(sinkParams, futures);
         clickHouseSinkScheduledCheckerAndCleaner = new ClickHouseSinkScheduledCheckerAndCleaner(sinkParams, futures);
-        logger.info("Build sink writer's manager. params = {}", sinkParams.toString());
+        logger.info("Build sink writer's manager. params = {}", sinkParams);
     }
 
     public Sink buildSink(Properties localProperties) {

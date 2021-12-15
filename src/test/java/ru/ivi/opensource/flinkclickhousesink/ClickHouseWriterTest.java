@@ -6,10 +6,18 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import org.asynchttpclient.*;
+import org.asynchttpclient.AsyncHttpClient;
+import org.asynchttpclient.BoundRequestBuilder;
+import org.asynchttpclient.Dsl;
+import org.asynchttpclient.ListenableFuture;
+import org.asynchttpclient.Request;
+import org.asynchttpclient.Response;
 import org.hamcrest.CoreMatchers;
 import org.jmock.lib.concurrent.Blitzer;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.mockito.Mockito;
 import org.testcontainers.containers.ClickHouseContainer;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableList;
@@ -25,7 +33,11 @@ import ru.ivi.opensource.flinkclickhousesink.util.ConfigUtil;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
@@ -36,13 +48,15 @@ import java.util.concurrent.locks.Lock;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.asynchttpclient.Dsl.asyncHttpClient;
 import static org.awaitility.Awaitility.await;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 
 public class ClickHouseWriterTest {
 
     private static final int MAX_ATTEMPT = 2;
-    private static final String JDBC_DRIVER = "ru.yandex.clickhouse.ClickHouseDriver";
     private static final int HTTP_CLICKHOUSE_PORT = 8123;
+
+    private static final String JDBC_DRIVER = "ru.yandex.clickhouse.ClickHouseDriver";
 
     private AsyncHttpClient asyncHttpClient;
     private HikariDataSource hikariDataSource;
@@ -173,8 +187,7 @@ public class ClickHouseWriterTest {
         }
 
         final int attempts = 2_000_000;
-        final int numThreads = numBuffers;
-        Blitzer blitzer = new Blitzer(attempts, numThreads);
+        Blitzer blitzer = new Blitzer(attempts, numBuffers);
         blitzer.blitz(() -> {
             int id = ThreadLocalRandom.current().nextInt(0, numBuffers);
             Lock lock = striped.get(id);
@@ -201,7 +214,6 @@ public class ClickHouseWriterTest {
                 .pollInterval(500, MILLISECONDS)
                 .until(() -> getCount("test.test0") + getCount("test.test1") == attempts);
     }
-
 
     @Test
     public void testInvalidRequestException() throws Exception {
@@ -288,7 +300,7 @@ public class ClickHouseWriterTest {
             clickHouseWriter.close();
             fail("Expected RuntimeException.");
         } catch (RuntimeException expected) {
-            Assert.assertThat(expected.getMessage(), CoreMatchers.containsString("NPE"));
+            assertThat(expected.getMessage(), CoreMatchers.containsString("NPE"));
         }
 
         Mockito.verify(asyncHttpClient, Mockito.times(maxRetries + 1)).executeRequest(Mockito.any(Request.class));

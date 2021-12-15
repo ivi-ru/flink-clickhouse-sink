@@ -1,18 +1,19 @@
 package ru.ivi.opensource.flinkclickhousesink.applied;
 
 import org.hamcrest.CoreMatchers;
-import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.stubbing.OngoingStubbing;
 
 import java.util.concurrent.ExecutionException;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 public class ExceptionsThrowableSinkTest {
 
@@ -20,14 +21,10 @@ public class ExceptionsThrowableSinkTest {
     private ClickHouseSinkBuffer buffer;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         buffer = Mockito.mock(ClickHouseSinkBuffer.class);
         exceptionsThrowableSink = new ExceptionsThrowableSink(buffer);
         MockitoAnnotations.initMocks(this);
-    }
-
-    @After
-    public void tearDown() throws Exception {
     }
 
     @Test
@@ -46,7 +43,7 @@ public class ExceptionsThrowableSinkTest {
         try {
             exceptionsThrowableSink.put(actual);
         } catch (InterruptedException expectedException) {
-            Assert.assertThat(expectedException.getMessage(), CoreMatchers.containsString("test Exception message"));
+            assertThat(expectedException.getMessage(), CoreMatchers.containsString("test Exception message"));
         }
         verify(buffer, times(1)).assertFuturesNotFailedYet();
     }

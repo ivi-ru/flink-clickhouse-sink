@@ -12,7 +12,7 @@
 
     <groupId>ru.ivi.opensource</groupId>
     <artifactId>flink-clickhouse-sink</artifactId>
-    <version>1.3.5-SNAPSHOT</version>
+    <version>1.4.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>Flink ClickHouse sink</name>

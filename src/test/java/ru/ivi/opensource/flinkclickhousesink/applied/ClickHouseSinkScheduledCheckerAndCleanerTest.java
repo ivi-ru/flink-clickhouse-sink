@@ -11,7 +11,6 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 import ru.ivi.opensource.flinkclickhousesink.model.ClickHouseClusterSettings;
 import ru.ivi.opensource.flinkclickhousesink.model.ClickHouseSinkCommonParams;
-import ru.ivi.opensource.flinkclickhousesink.model.ClickHouseSinkCommonParams;
 import ru.ivi.opensource.flinkclickhousesink.model.ClickHouseSinkConst;
 import ru.ivi.opensource.flinkclickhousesink.util.ConfigUtil;
 
@@ -29,8 +28,8 @@ import static org.awaitility.Awaitility.await;
 public class ClickHouseSinkScheduledCheckerAndCleanerTest {
 
     private ClickHouseSinkScheduledCheckerAndCleaner checker;
-    private AtomicInteger counter = new AtomicInteger(0);
-    private List<CompletableFuture<Boolean>> futures = Collections.synchronizedList(new LinkedList<>());
+    private final AtomicInteger counter = new AtomicInteger(0);
+    private final List<CompletableFuture<Boolean>> futures = Collections.synchronizedList(new LinkedList<>());
 
     @Before
     public void setUp() {

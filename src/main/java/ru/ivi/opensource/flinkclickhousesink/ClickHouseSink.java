@@ -10,20 +10,22 @@ import ru.ivi.opensource.flinkclickhousesink.applied.Sink;
 import java.util.Map;
 import java.util.Properties;
 
-
-public class ClickHouseSink extends RichSinkFunction<String> {
+public class ClickHouseSink<T> extends RichSinkFunction<T> {
 
     private static final Logger logger = LoggerFactory.getLogger(ClickHouseSink.class);
 
     private static final Object DUMMY_LOCK = new Object();
 
     private final Properties localProperties;
+    private final ClickHouseSinkConverter<T> clickHouseSinkConverter;
 
     private volatile static transient ClickHouseSinkManager sinkManager;
     private transient Sink sink;
 
-    public ClickHouseSink(Properties properties) {
+    public ClickHouseSink(Properties properties,
+                          ClickHouseSinkConverter<T> clickHouseSinkConverter) {
         this.localProperties = properties;
+        this.clickHouseSinkConverter = clickHouseSinkConverter;
     }
 
     @Override
@@ -45,16 +47,18 @@ public class ClickHouseSink extends RichSinkFunction<String> {
     }
 
     /**
-     * Add csv to sink
+     * Add a record to sink
      *
-     * @param recordAsCSV csv-event
+     * @param record  record, which will be converted to csv, using {@link ClickHouseSinkConverter}
+     * @param context ctx
      */
     @Override
-    public void invoke(String recordAsCSV, Context context) {
+    public void invoke(T record, Context context) {
         try {
+            String recordAsCSV = clickHouseSinkConverter.convert(record);
             sink.put(recordAsCSV);
         } catch (Exception e) {
-            logger.error("Error while sending data to ClickHouse, record = {}", recordAsCSV, e);
+            logger.error("Error while sending data to ClickHouse, record = {}", record, e);
             throw new RuntimeException(e);
         }
     }
