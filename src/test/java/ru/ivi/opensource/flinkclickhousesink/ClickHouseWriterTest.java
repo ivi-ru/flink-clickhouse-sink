@@ -52,12 +52,10 @@ import static org.junit.Assert.fail;
 
 public class ClickHouseWriterTest {
 
-    private static final int MAX_ATTEMPT = 2;
     private static final int HTTP_CLICKHOUSE_PORT = 8123;
 
     private static final String JDBC_DRIVER = "ru.yandex.clickhouse.ClickHouseDriver";
 
-    private AsyncHttpClient asyncHttpClient;
     private HikariDataSource hikariDataSource;
 
     @Rule
