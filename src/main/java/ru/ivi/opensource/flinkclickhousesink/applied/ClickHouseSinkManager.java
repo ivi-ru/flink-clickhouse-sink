@@ -18,6 +18,7 @@ public class ClickHouseSinkManager implements AutoCloseable {
     private final ClickHouseSinkScheduledCheckerAndCleaner clickHouseSinkScheduledCheckerAndCleaner;
     private final ClickHouseSinkCommonParams sinkParams;
     private final List<CompletableFuture<Boolean>> futures = Collections.synchronizedList(new LinkedList<>());
+
     private volatile boolean isClosed = false;
 
     public ClickHouseSinkManager(Map<String, String> globalParams) {

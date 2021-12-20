@@ -6,12 +6,13 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.apache.flink.api.common.restartstrategy.RestartStrategies;
+import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.asynchttpclient.AsyncHttpClient;
-import org.asynchttpclient.BoundRequestBuilder;
 import org.asynchttpclient.Dsl;
 import org.asynchttpclient.ListenableFuture;
 import org.asynchttpclient.Request;
-import org.asynchttpclient.Response;
 import org.hamcrest.CoreMatchers;
 import org.jmock.lib.concurrent.Blitzer;
 import org.junit.After;
@@ -38,11 +39,9 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -66,12 +65,13 @@ public class ClickHouseWriterTest {
 
     private ClickHouseSinkManager sinkManager;
 
+    private Map<String, String> params;
     private ClickHouseSinkCommonParams clickHouseSinkCommonParams;
 
     @Before
     public void setUp() throws Exception {
         Config config = ConfigFactory.load();
-        Map<String, String> params = ConfigUtil.toMap(config);
+        params = ConfigUtil.toMap(config);
 
         params.put(ClickHouseClusterSettings.CLICKHOUSE_USER, "");
         params.put(ClickHouseClusterSettings.CLICKHOUSE_PASSWORD, "");
@@ -137,34 +137,6 @@ public class ClickHouseWriterTest {
             }
         }
         return res;
-    }
-
-    private void send(String data, String url, String basicCredentials, AtomicInteger counter) {
-        String query = String.format("INSERT INTO %s VALUES %s ", "groot3.events", data);
-        BoundRequestBuilder requestBuilder = asyncHttpClient.preparePost(url).setHeader("Authorization", basicCredentials);
-        requestBuilder.setBody(query);
-        ListenableFuture<Response> whenResponse = asyncHttpClient.executeRequest(requestBuilder.build());
-        Runnable callback = () -> {
-            try {
-                Response response = whenResponse.get();
-                System.out.println(Thread.currentThread().getName() + " " + response);
-
-                if (response.getStatusCode() != 200) {
-                    System.out.println(Thread.currentThread().getName() + " try to retry...");
-                    int attempt = counter.incrementAndGet();
-                    if (attempt > MAX_ATTEMPT) {
-                        System.out.println("Failed ");
-                    } else {
-                        send(data, url, basicCredentials, counter);
-                    }
-                }
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
-        };
-
-        Executor executor = ForkJoinPool.commonPool();
-        whenResponse.addListener(callback, executor);
     }
 
     @Test
@@ -304,5 +276,58 @@ public class ClickHouseWriterTest {
         }
 
         Mockito.verify(asyncHttpClient, Mockito.times(maxRetries + 1)).executeRequest(Mockito.any(Request.class));
+    }
+
+    @Test
+    public void flinkPipelineTest() throws Exception {
+        final StreamExecutionEnvironment env = StreamExecutionEnvironment.createLocalEnvironment();
+        env.setParallelism(2);
+        ParameterTool parameters = ParameterTool.fromMap(params);
+        env.getConfig().setGlobalJobParameters(parameters);
+        env.getConfig().setRestartStrategy(RestartStrategies.noRestart());
+        env.getConfig().disableSysoutLogging();
+
+        Properties props = new Properties();
+        props.put(ClickHouseSinkConst.TARGET_TABLE_NAME, "test.test1");
+        props.put(ClickHouseSinkConst.MAX_BUFFER_SIZE, "100");
+
+        List<Record> l = new ArrayList<>();
+        l.add(new Record(10, "super-movie-0", 100));
+        l.add(new Record(20, "super-movie-1", 200));
+        l.add(new Record(30, "super-movie-2", 300));
+        int size = l.size();
+
+        ClickHouseSinkConverter<Record> clickHouseSinkConverter = record -> "(" +
+                record.id +
+                ", " +
+                "'" +
+                record.title +
+                "', " +
+                record.num +
+                ")";
+
+        env.fromCollection(l)
+                .addSink(new ClickHouseSink<>(props, clickHouseSinkConverter));
+
+        env.execute("Flink test");
+
+        await()
+                .atMost(10000, MILLISECONDS)
+                .with()
+                .pollInterval(500, MILLISECONDS)
+                .until(() -> getCount("test.test1") == size);
+    }
+
+    // for test.test1 table
+    private static class Record {
+        final long id;
+        final String title;
+        final long num;
+
+        private Record(long id, String title, long num) {
+            this.id = id;
+            this.title = title;
+            this.num = num;
+        }
     }
 }

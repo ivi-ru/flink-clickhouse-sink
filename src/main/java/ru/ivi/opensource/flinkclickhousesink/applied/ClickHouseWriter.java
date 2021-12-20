@@ -32,14 +32,16 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class ClickHouseWriter implements AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(ClickHouseWriter.class);
-    private ExecutorService service;
-    private ExecutorService callbackService;
-    private List<WriterTask> tasks;
+
     private final BlockingQueue<ClickHouseRequestBlank> commonQueue;
     private final AtomicLong unprocessedRequestsCounter = new AtomicLong();
     private final AsyncHttpClient asyncHttpClient;
     private final List<CompletableFuture<Boolean>> futures;
     private final ClickHouseSinkCommonParams sinkParams;
+
+    private ExecutorService service;
+    private ExecutorService callbackService;
+    private List<WriterTask> tasks;
 
     public ClickHouseWriter(ClickHouseSinkCommonParams sinkParams, List<CompletableFuture<Boolean>> futures) {
         this(sinkParams, futures, Dsl.asyncHttpClient());
