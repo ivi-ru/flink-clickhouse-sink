@@ -45,7 +45,6 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.locks.Lock;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.asynchttpclient.Dsl.asyncHttpClient;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
@@ -79,8 +78,6 @@ public class ClickHouseWriterTest {
         params.put(ClickHouseClusterSettings.CLICKHOUSE_HOSTS, "http://" + clickHouse.getContainerIpAddress() + ":" + dockerActualPort);
         params.put(ClickHouseSinkConst.IGNORING_CLICKHOUSE_SENDING_EXCEPTION_ENABLED, "true");
         clickHouseSinkCommonParams = new ClickHouseSinkCommonParams(params);
-
-        asyncHttpClient = asyncHttpClient();
 
         try {
             Class.forName(JDBC_DRIVER);
