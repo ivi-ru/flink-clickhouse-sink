@@ -275,7 +275,7 @@ public class ClickHouseWriterTest {
 
     @Test
     public void flinkPipelineTest() throws Exception {
-        final StreamExecutionEnvironment env = StreamExecutionEnvironment.createLocalEnvironment();
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.createLocalEnvironment();
         env.setParallelism(2);
         ParameterTool parameters = ParameterTool.fromMap(params);
         env.getConfig().setGlobalJobParameters(parameters);
