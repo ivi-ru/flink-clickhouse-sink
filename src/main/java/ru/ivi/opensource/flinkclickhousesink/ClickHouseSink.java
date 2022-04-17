@@ -70,6 +70,7 @@ public class ClickHouseSink extends RichSinkFunction<String> {
                 synchronized (DUMMY_LOCK) {
                     if (!sinkManager.isClosed()) {
                         sinkManager.close();
+						sinkManager = null;
                     }
                 }
             }
