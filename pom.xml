@@ -41,9 +41,10 @@
         <junit.version>4.13.1</junit.version>
         <mockito.version>2.8.9</mockito.version>
         <awaitility.version>3.1.2</awaitility.version>
-        <testcontainers.version>1.9.1</testcontainers.version>
+        <testcontainers.version>1.17.1</testcontainers.version>
         <hikari.version>2.3.8</hikari.version>
         <jmock.junit4.version>2.9.0</jmock.junit4.version>
+        <jackson.version>2.13.2</jackson.version>
 
         <!-- Plugins version -->
         <mvn.compiler.version>3.7.0</mvn.compiler.version>
@@ -175,6 +176,13 @@
             <groupId>org.testcontainers</groupId>
             <artifactId>clickhouse</artifactId>
             <version>${testcontainers.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>${jackson.version}</version>
             <scope>test</scope>
         </dependency>
 
