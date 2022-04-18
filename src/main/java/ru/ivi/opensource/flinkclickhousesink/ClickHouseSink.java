@@ -65,13 +65,11 @@ public class ClickHouseSink extends RichSinkFunction<String> {
             sink.close();
         }
 
-        if (sinkManager != null) {
-            if (!sinkManager.isClosed()) {
-                synchronized (DUMMY_LOCK) {
-                    if (!sinkManager.isClosed()) {
-                        sinkManager.close();
-						sinkManager = null;
-                    }
+        if (sinkManager != null && !sinkManager.isClosed()) {
+            synchronized (DUMMY_LOCK) {
+                if (sinkManager != null && !sinkManager.isClosed()) {
+                    sinkManager.close();
+                    sinkManager = null;
                 }
             }
         }
