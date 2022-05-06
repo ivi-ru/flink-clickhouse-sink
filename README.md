@@ -107,12 +107,12 @@ globalParameters.put(ClickHouseClusterSettings.CLICKHOUSE_USER, ...);
 globalParameters.put(ClickHouseClusterSettings.CLICKHOUSE_PASSWORD, ...);
 
 // sink common
-globalParameters.put(ClickHouseSinkConsts.TIMEOUT_SEC, ...);
-globalParameters.put(ClickHouseSinkConsts.FAILED_RECORDS_PATH, ...);
-globalParameters.put(ClickHouseSinkConsts.NUM_WRITERS, ...);
-globalParameters.put(ClickHouseSinkConsts.NUM_RETRIES, ...);
-globalParameters.put(ClickHouseSinkConsts.QUEUE_MAX_CAPACITY, ...);
-globalParameters.put(ClickHouseSinkConsts.IGNORING_CLICKHOUSE_SENDING_EXCEPTION_ENABLED, ...);
+globalParameters.put(ClickHouseSinkConst.TIMEOUT_SEC, ...);
+globalParameters.put(ClickHouseSinkConst.FAILED_RECORDS_PATH, ...);
+globalParameters.put(ClickHouseSinkConst.NUM_WRITERS, ...);
+globalParameters.put(ClickHouseSinkConst.NUM_RETRIES, ...);
+globalParameters.put(ClickHouseSinkConst.QUEUE_MAX_CAPACITY, ...);
+globalParameters.put(ClickHouseSinkConst.IGNORING_CLICKHOUSE_SENDING_EXCEPTION_ENABLED, ...);
 
 // set global paramaters
 ParameterTool parameters = ParameterTool.fromMap(buildGlobalParameters(config));
@@ -133,8 +133,8 @@ public YourEventConverter {
 
 // create props for sink
 Properties props = new Properties();
-props.put(ClickHouseSinkConsts.TARGET_TABLE_NAME, "your_table");
-props.put(ClickHouseSinkConsts.MAX_BUFFER_SIZE, "10000");
+props.put(ClickHouseSinkConst.TARGET_TABLE_NAME, "your_table");
+props.put(ClickHouseSinkConst.MAX_BUFFER_SIZE, "10000");
 
 // build chain
 DataStream<YourEvent> dataStream = ...;
