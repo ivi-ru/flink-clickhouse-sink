@@ -36,7 +36,7 @@ public class S3UtilTest {
 
     @Test
     public void testSaveFailedRecordsToS3() throws Exception {
-        String filePath = "/Users/rajatchaudhary/Downloads/sample_text.txt";
+        String filePath = "sample_text.txt";
 
         ClickHouseSinkCommonParams sinkSettings = new ClickHouseSinkCommonParams(settingsMap);
 
