@@ -7,7 +7,7 @@ import java.util.*;
 
 public final class ConfigUtil {
 
-    public static final String HOST_DELIMITER = ", ";
+    public static final String HOST_DELIMITER = ",";
 
     private ConfigUtil() {
 
