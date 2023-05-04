@@ -3,11 +3,15 @@ package ru.ivi.opensource.flinkclickhousesink.util;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigValue;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 public final class ConfigUtil {
 
-    public static final String HOST_DELIMITER = ", ";
+    public static final String HOST_DELIMITER = ",";
 
     private ConfigUtil() {
 
@@ -30,11 +34,11 @@ public final class ConfigUtil {
         return object.toString();
     }
 
-    static public String buildStringFromList(List<String> list) {
+    public static String buildStringFromList(List<String> list) {
         return String.join(HOST_DELIMITER, list);
     }
 
-    static public List<String> buildListFromString(String string) {
+    public static List<String> buildListFromString(String string) {
         return Arrays.asList(string.split(" "));
     }
 }

@@ -53,8 +53,9 @@ public class ClickHouseClusterSettings {
     }
 
     private static List<String> buildHostsAndPort(String hostsString) {
-        return Arrays.stream(hostsString
-                .split(ConfigUtil.HOST_DELIMITER))
+        String hosts = hostsString.replace(" ", "");
+        return Arrays.stream(hosts
+                        .split(ConfigUtil.HOST_DELIMITER))
                 .map(ClickHouseClusterSettings::checkHttpAndAdd)
                 .collect(Collectors.toList());
     }
