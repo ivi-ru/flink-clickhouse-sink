@@ -40,7 +40,7 @@ common and for each sink in you operators chain.
 
 **The common part** (use like global):
 
- `clickhouse.sink.num-writers` - number of writers, which build and  send requests, 
+ `clickhouse.sink.num-writers` - number of writers, which build and send requests, 
  
  `clickhouse.sink.queue-max-capacity` - max capacity (batches) of blank's queue,
  
@@ -64,7 +64,7 @@ common and for each sink in you operators chain.
 
 #### Configuration: global parameters
 
-You have to add global parameters for Flink environment:
+At first, you add global parameters for the Flink environment:
 ```java
 StreamExecutionEnvironment environment = StreamExecutionEnvironment.createLocalEnvironment();
 Map<String, String> globalParameters = new HashMap<>();
@@ -90,11 +90,11 @@ environment.getConfig().setGlobalJobParameters(parameters);
 
 #### Converter
 
-The main thing: the clickhouse-sink works with events in string
+The main thing: the clickhouse-sink works with events in _String_
 (ClickHouse insert format, like CSV) format.
-You have to convert your event to csv format (like usual insert in database).
+You have to convert your event to csv format (like usual insert into a database).
 
-For example, you have event-pojo:
+For example, you have an event-pojo:
  ```java
 class A {
     public final String str;
