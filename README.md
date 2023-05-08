@@ -15,10 +15,10 @@ It has two triggers for loading data:
 _by timeout_ and _by buffer size_.
 
 ##### Version map
-|flink    |flink-clickhouse-sink | 
-|:-------:|:--------------------:| 
-|1.3.*    |1.0.0                 |
-|1.9.*    |1.3.3                 |
+|flink    | flink-clickhouse-sink | 
+|:-------:|:---------------------:| 
+|1.3.*    |         1.0.0         |
+|1.9.*    |         1.3.4         |
 
 
 ### Install
@@ -29,7 +29,7 @@ _by timeout_ and _by buffer size_.
 <dependency>
   <groupId>ru.ivi.opensource</groupId>
   <artifactId>flink-clickhouse-sink</artifactId>
-  <version>1.3.3</version>
+  <version>1.3.4</version>
 </dependency>
 ```
 
