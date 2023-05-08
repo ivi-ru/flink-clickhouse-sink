@@ -4,7 +4,12 @@ import com.google.common.base.Preconditions;
 
 import java.util.Map;
 
-import static ru.ivi.opensource.flinkclickhousesink.model.ClickHouseSinkConst.*;
+import static ru.ivi.opensource.flinkclickhousesink.model.ClickHouseSinkConst.FAILED_RECORDS_PATH;
+import static ru.ivi.opensource.flinkclickhousesink.model.ClickHouseSinkConst.IGNORING_CLICKHOUSE_SENDING_EXCEPTION_ENABLED;
+import static ru.ivi.opensource.flinkclickhousesink.model.ClickHouseSinkConst.NUM_RETRIES;
+import static ru.ivi.opensource.flinkclickhousesink.model.ClickHouseSinkConst.NUM_WRITERS;
+import static ru.ivi.opensource.flinkclickhousesink.model.ClickHouseSinkConst.QUEUE_MAX_CAPACITY;
+import static ru.ivi.opensource.flinkclickhousesink.model.ClickHouseSinkConst.TIMEOUT_SEC;
 
 public class ClickHouseSinkCommonParams {
 

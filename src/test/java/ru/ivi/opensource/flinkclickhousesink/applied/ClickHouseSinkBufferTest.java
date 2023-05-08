@@ -9,8 +9,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
-import ru.ivi.opensource.flinkclickhousesink.model.ClickHouseRequestBlank;
 import ru.ivi.opensource.flinkclickhousesink.model.ClickHouseClusterSettings;
+import ru.ivi.opensource.flinkclickhousesink.model.ClickHouseRequestBlank;
 import ru.ivi.opensource.flinkclickhousesink.model.ClickHouseSinkCommonParams;
 import ru.ivi.opensource.flinkclickhousesink.model.ClickHouseSinkConst;
 import ru.ivi.opensource.flinkclickhousesink.util.ConfigUtil;
@@ -20,7 +20,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -39,7 +38,7 @@ public class ClickHouseSinkBufferTest {
     private ClickHouseSinkBuffer bufferTimeTrigger;
     private ClickHouseSinkBuffer bufferSizeTrigger;
     private ClickHouseWriter writer;
-    private List<CompletableFuture<Boolean>> futures = Collections.synchronizedList(new LinkedList<>());
+    private final List<CompletableFuture<Boolean>> futures = Collections.synchronizedList(new LinkedList<>());
 
     @Before
     public void setUp() {
@@ -68,7 +67,7 @@ public class ClickHouseSinkBufferTest {
     }
 
     @Test
-    public void simplePut() throws ExecutionException, InterruptedException {
+    public void simplePut() {
         Mockito.doAnswer(invocationOnMock -> {
             ClickHouseRequestBlank blank = invocationOnMock.getArgument(0);
             System.out.println(blank);

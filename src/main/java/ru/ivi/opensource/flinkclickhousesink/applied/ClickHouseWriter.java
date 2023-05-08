@@ -2,7 +2,12 @@ package ru.ivi.opensource.flinkclickhousesink.applied;
 
 import com.google.common.collect.Lists;
 import io.netty.handler.codec.http.HttpHeaderNames;
-import org.asynchttpclient.*;
+import org.asynchttpclient.AsyncHttpClient;
+import org.asynchttpclient.BoundRequestBuilder;
+import org.asynchttpclient.Dsl;
+import org.asynchttpclient.ListenableFuture;
+import org.asynchttpclient.Request;
+import org.asynchttpclient.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.ivi.opensource.flinkclickhousesink.model.ClickHouseRequestBlank;
@@ -16,19 +21,27 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class ClickHouseWriter implements AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(ClickHouseWriter.class);
-    private ExecutorService service;
-    private ExecutorService callbackService;
-    private List<WriterTask> tasks;
+
     private final BlockingQueue<ClickHouseRequestBlank> commonQueue;
     private final AtomicLong unprocessedRequestsCounter = new AtomicLong();
     private final AsyncHttpClient asyncHttpClient;
     private final List<CompletableFuture<Boolean>> futures;
     private final ClickHouseSinkCommonParams sinkParams;
+
+    private ExecutorService service;
+    private ExecutorService callbackService;
+    private List<WriterTask> tasks;
 
     public ClickHouseWriter(ClickHouseSinkCommonParams sinkParams, List<CompletableFuture<Boolean>> futures) {
         this(sinkParams, futures, Dsl.asyncHttpClient());

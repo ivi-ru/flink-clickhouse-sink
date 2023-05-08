@@ -18,13 +18,14 @@ public class ClickHouseSinkManager implements AutoCloseable {
     private final ClickHouseSinkScheduledCheckerAndCleaner clickHouseSinkScheduledCheckerAndCleaner;
     private final ClickHouseSinkCommonParams sinkParams;
     private final List<CompletableFuture<Boolean>> futures = Collections.synchronizedList(new LinkedList<>());
+
     private volatile boolean isClosed = false;
 
     public ClickHouseSinkManager(Map<String, String> globalParams) {
         sinkParams = new ClickHouseSinkCommonParams(globalParams);
         clickHouseWriter = new ClickHouseWriter(sinkParams, futures);
         clickHouseSinkScheduledCheckerAndCleaner = new ClickHouseSinkScheduledCheckerAndCleaner(sinkParams, futures);
-        logger.info("Build sink writer's manager. params = {}", sinkParams.toString());
+        logger.info("Build sink writer's manager. params = {}", sinkParams);
     }
 
     public Sink buildSink(Properties localProperties) {
