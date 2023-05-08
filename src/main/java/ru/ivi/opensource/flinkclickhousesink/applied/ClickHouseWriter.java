@@ -14,6 +14,7 @@ import ru.ivi.opensource.flinkclickhousesink.model.ClickHouseRequestBlank;
 import ru.ivi.opensource.flinkclickhousesink.model.ClickHouseSinkCommonParams;
 import ru.ivi.opensource.flinkclickhousesink.util.FutureUtil;
 import ru.ivi.opensource.flinkclickhousesink.util.ThreadUtil;
+import ru.ivi.opensource.flinkclickhousesink.util.S3Util;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -286,7 +287,11 @@ public class ClickHouseWriter implements AutoCloseable {
                 records.forEach(writer::println);
                 writer.flush();
             }
+            if (sinkSettings.isS3Enabled()) {
+                S3Util.saveFailedRecordsToS3(filePath, sinkSettings);
+            }
             logger.info("Successful send data on disk, path = {}, size = {} ", filePath, requestBlank.getValues().size());
+
         }
 
         void setStopWorking() {
