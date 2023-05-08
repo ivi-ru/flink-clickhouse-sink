@@ -112,11 +112,9 @@ You have to implement a converter to csv, using
 public interface ClickHouseSinkConverter<T> {
  ...
 }
-
-Example:
-
 ```
-You have to convert this pojo like this:
+
+You convert the pojo like this:
 
 ```java
 import ru.ivi.opensource.flinkclickhousesink.ClickHouseSinkConverter;
