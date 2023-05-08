@@ -138,9 +138,8 @@ public class YourEventConverter implements ClickHouseSinkConverter<A>{
     }
 }
 ```
-And then add record to sink.
 
-And add your sink like this:
+And then add your sink to the chain:
 ```java
 
 // create table props for sink
