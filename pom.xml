@@ -32,7 +32,7 @@
 
         <!-- Secondary components -->
         <async.client.version>2.10.4</async.client.version>
-        <logback.version>1.2.3</logback.version>
+        <logback.version>1.2.13</logback.version>
         <guava.version>23.0</guava.version>
         <typesafe.config.version>1.3.3</typesafe.config.version>
         <ch.driver.version>0.1.40</ch.driver.version>
